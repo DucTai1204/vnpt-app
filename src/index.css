@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/**
+ * Bảng màu lấy trực tiếp từ bộ thiết kế trong "man hinh san/"
+ * (đo bằng cách lấy pixel tối nhất của chữ và màu chủ đạo của nền nút).
+ *
+ * Khai báo ở @theme để dùng được như class Tailwind: text-navy, bg-brand...
+ */
+@theme {
+  /* Xanh navy — tiêu đề, nhãn, tên khách */
+  --color-navy: #101c7c;
+  --color-navy-soft: #3a4a9e;
+
+  /* Xanh thương hiệu — nút chính, ngày/giờ đang chọn */
+  --color-brand: #0a5cd6;
+  --color-brand-dark: #0846a8;
+  --color-brand-text: #0b3fd8;
+  --color-brand-surface: #eef4ff;
+  --color-brand-border: #c9dcff;
+
+  /* Đỏ — cuối tuần, cảnh báo, nhấn mạnh */
+  --color-accent: #e0192b;
+  --color-accent-surface: #fdeced;
+
+  /* Trung tính */
+  --color-ink: #1f2340;
+  --color-muted: #5b6079;
+  --color-hairline: #e6ebf5;
+  --color-canvas: #f5f8fe;
+}
+
+/* [R-2.4] Loại bỏ delay 300ms khi chạm trên SmartScreen */
+html {
+  touch-action: manipulation;
+}
+
+/* [R-2.3] Cuộn mượt trên WebView, không dùng animation nặng */
+body {
+  -webkit-tap-highlight-color: transparent;
+}

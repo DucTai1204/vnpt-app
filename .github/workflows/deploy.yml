@@ -1,0 +1,65 @@
+# Build MiniApp SAN thành web tĩnh rồi publish lên GitHub Pages.
+#
+# Backend (../vnpt-api) KHÔNG nằm trong repo này — bản Pages gọi sang một
+# domain khác, khai bằng biến VITE_API_BASE_URL bên dưới.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Cho phép bấm chạy tay sau khi đổi URL backend (ngrok free đổi domain mỗi
+  # lần khởi động lại) mà không cần commit rỗng.
+  workflow_dispatch:
+
+# Chỉ cấp đúng quyền cần để đẩy artifact lên Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Một lần deploy tại một thời điểm; không hủy lần đang chạy dở.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        env:
+          # Đặt ở Settings > Secrets and variables > Actions > Variables.
+          # Đổi domain backend chỉ cần sửa biến này rồi chạy lại workflow.
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          # "." = lấy ảnh từ public/media đã đóng gói sẵn, cùng origin với trang.
+          VITE_MEDIA_BASE_URL: '.'
+        run: npm run build
+
+      - name: SPA fallback
+        # App là SPA một trang; 404.html trỏ về index.html để refresh ở
+        # đường dẫn con không rơi vào trang 404 của GitHub.
+        run: cp dist/index.html dist/404.html
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

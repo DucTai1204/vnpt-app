@@ -1,0 +1,6 @@
+{
+  "name": "SAN - Chăm Sóc Sức Khỏe Tại Nhà",
+  "description": "Nền tảng đặt dịch vụ chăm sóc người già và người bệnh tại nhà hợp tác VNPT Home.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
