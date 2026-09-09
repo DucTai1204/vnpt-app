@@ -21,5 +21,10 @@ release/
 android/keystore/
 android/keystore.properties
 
-# Ảnh copy từ backend bằng scripts/sync-media.mjs
-public/media/
+# public/media/ PHẢI được commit, đừng bỏ qua.
+#
+# Trước đây thư mục này bị ignore vì "sinh ra bởi scripts/sync-media.mjs".
+# Nhưng CI chỉ checkout repo frontend, không có ../vnpt-api để copy sang, và
+# workflow chạy `npm run build` chứ không phải `build:pages` — nên sync-media
+# không hề chạy trên CI. Hệ quả: ảnh mới thêm không bao giờ lên GitHub Pages,
+# lặng lẽ 404, còn ảnh cũ thì chạy được vì đã commit từ trước khi có luật ignore.
