@@ -22,6 +22,21 @@
   --color-accent: #e0192b;
   --color-accent-surface: #fdeced;
 
+  /* Màn chào & đăng nhập — đo từ bộ thiết kế 1-man hinh chao / 2-man hinh log on */
+  --color-sky-top: #dceefe;    /* nền gradient phía trên */
+  --color-sky-bottom: #9fd4fb; /* nền gradient phía dưới */
+  --color-crimson: #96161b;    /* "Trẻ cậy cha, già cậy SAN" */
+  --color-cta-from: #d90303;   /* nút Đăng nhập: đỏ -> cam */
+  --color-cta-to: #fe650b;
+
+  /* Đo từ 3-man hinh chon dv / 4-man hinh them dia chi / 5-man hinh chon ngay */
+  --color-cta-blue: #0558b4;      /* nút "Lưu", "Chọn dịch vụ" */
+  --color-cta-blue-dark: #04437f; /* trạng thái hover */
+  --color-pill-on: #0528aa;       /* chữ pill "Nhà riêng" đang chọn */
+  --color-pill-surface: #e9f1fc;  /* nền pill đang chọn */
+  --color-title-red: #a30000;     /* "DỊCH VỤ THEO NGÀY/ BUỔI" */
+  --color-check-green: #0caf20;   /* ô tích "Địa chỉ mặc định" */
+
   /* Trung tính */
   --color-ink: #1f2340;
   --color-muted: #5b6079;

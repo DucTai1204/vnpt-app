@@ -37,9 +37,10 @@ jobs:
 
       - name: Build
         env:
-          # Đặt ở Settings > Secrets and variables > Actions > Variables.
-          # Đổi domain backend chỉ cần sửa biến này rồi chạy lại workflow.
-          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          # Mặc định là backend trên Render. Muốn trỏ nơi khác thì đặt biến
+          # VITE_API_BASE_URL ở Settings > Secrets and variables > Actions >
+          # Variables rồi chạy lại workflow — biến đó sẽ được ưu tiên.
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || 'https://vnpt-san-api.onrender.com' }}
           # "." = lấy ảnh từ public/media đã đóng gói sẵn, cùng origin với trang.
           VITE_MEDIA_BASE_URL: '.'
         run: npm run build

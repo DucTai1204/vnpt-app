@@ -1,7 +1,7 @@
 import React from 'react';
 import { CheckCircle2, Home } from 'lucide-react';
-import { useContent, useImage, useSetting } from '../api/BootstrapContext';
-import { RemoteImage } from './RemoteImage';
+import { useContent, useSetting } from '../api/BootstrapContext';
+import { imageOf, RemoteImage } from './RemoteImage';
 import { ApiBookingDetail } from '../api/client';
 
 interface SuccessModalProps {
@@ -11,9 +11,10 @@ interface SuccessModalProps {
 }
 
 export const SuccessModal: React.FC<SuccessModalProps> = ({ order, onGoHome }) => {
-  const anhCamOn = useImage('goi-theo-thang');
   const hotline = useSetting('app.hotline', '');
   const block = useContent('success', 'success.banner');
+  // Ảnh đi kèm chính khối nội dung này (khoi_noi_dung.anh_id), không gán mã cứng
+  const anhCamOn = imageOf(block);
 
   return (
     // [R-2.4] Không dùng backdrop-filter: nền mờ bằng màu đặc thay vì blur
@@ -35,14 +36,16 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({ order, onGoHome }) =
           <p className="text-sm font-semibold text-[#D42A2A]">{block?.subtitle ?? ''}</p>
         </div>
 
-        {/* Warmth & Trust Banner */}
-        <div className="rounded-2xl overflow-hidden shadow-xs border border-stone-200 max-h-36">
-          <RemoteImage
-            image={anhCamOn}
-            alt="SAN - Ấm áp & Phụng sự tận tâm"
-            className="w-full h-36 object-cover"
-          />
-        </div>
+        {/* Ảnh cảm ơn — chỉ dựng khung khi DB thực sự gắn ảnh cho khối này */}
+        {anhCamOn && (
+          <div className="rounded-2xl overflow-hidden shadow-xs border border-stone-200">
+            <RemoteImage
+              image={anhCamOn}
+              alt={block?.imageAlt ?? 'SAN - Ấm áp & Phụng sự tận tâm'}
+              className="w-full h-40 object-cover"
+            />
+          </div>
+        )}
 
         <div className="bg-stone-50 rounded-2xl p-4 border border-stone-200 text-left text-xs space-y-2 text-stone-700">
           <div className="flex justify-between font-bold text-[#0B2E6B] border-b border-stone-200 pb-2">

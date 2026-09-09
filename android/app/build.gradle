@@ -1,5 +1,13 @@
 apply plugin: 'com.android.application'
 
+// Cau hinh ky ban release. keystore.properties bi gitignore va KHONG duoc mat:
+// mat keystore = khong bao gio cap nhat duoc app da phat hanh.
+def keystorePropsFile = rootProject.file('keystore.properties')
+def keystoreProps = new Properties()
+if (keystorePropsFile.exists()) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+
 android {
     namespace "vn.vnpt.san.miniapp"
     compileSdk rootProject.ext.compileSdkVersion
@@ -16,8 +24,24 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (keystoreProps['storeFile']) {
+                storeFile rootProject.file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
+
     buildTypes {
         release {
+            // Chua co keystore thi de Gradle bao loi ro rang thay vi im lang
+            // xuat ra file unsigned khong cai duoc.
+            if (keystoreProps['storeFile']) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

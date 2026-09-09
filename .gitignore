@@ -6,3 +6,20 @@ coverage/
 *.log
 .env*
 !.env.example
+!.env.app.example
+
+# Android (Capacitor) — mã sinh tự động + sản phẩm build
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+release/
+
+# Khoa ky ban release — TUYET DOI khong commit, va phai sao luu cho khac
+android/keystore/
+android/keystore.properties
+
+# Ảnh copy từ backend bằng scripts/sync-media.mjs
+public/media/

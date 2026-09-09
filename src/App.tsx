@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { BackgroundDecoration } from './components/BackgroundDecoration';
-import { ProgressIndicator } from './components/ProgressIndicator';
 import { Step0Welcome } from './components/Step0Welcome';
 import { Step1Login } from './components/Step1Login';
 import { Step2HomeServices } from './components/Step2HomeServices';
@@ -14,10 +13,11 @@ import { SuccessModal } from './components/SuccessModal';
 import { AppStatus } from './components/AppStatus';
 
 import { useAuth } from './api/AuthContext';
-import { useBootstrap, useStep } from './api/BootstrapContext';
+import { useBootstrap } from './api/BootstrapContext';
 import { ApiBookingDetail, createBooking, deleteDraft, saveDraft } from './api/client';
 
 import { BookingState, DurationOption, EMPTY_BOOKING_STATE, StepId } from './types';
+import { useNativeShell } from './native/useNativeShell';
 
 export default function App() {
   const bootstrap = useBootstrap();
@@ -210,13 +210,27 @@ export default function App() {
     setBooking({ ...EMPTY_BOOKING_STATE, currentStep: 'step2' });
   };
 
-  const step = useStep(booking.currentStep);
+  /**
+   * Nút back cứng của Android (chỉ có tác dụng trong APK).
+   *
+   * Trả về true nếu app đã tự xử lý; false thì vỏ native mới thoát app.
+   * Thứ tự ưu tiên: đóng modal thành công -> lùi một bước -> thoát.
+   */
+  const handleHardwareBack = useCallback((): boolean => {
+    if (order) {
+      handleGoHome();
+      return true;
+    }
+    // Ở màn chào là hết đường lùi -> để native thoát app
+    if (booking.currentStep === 'step0') return false;
+    // Đã đăng nhập thì step2 là "trang chủ", lùi tiếp nữa là thoát
+    if (booking.currentStep === 'step2' && booking.previousStepHistory.length === 0) return false;
 
-  // step5a/5b/6 dựng theo bộ thiết kế mới: đã có ScreenHeader riêng (nút back +
-  // hotline) và thiết kế không có thanh tiến trình -> không gắn ProgressIndicator
-  // để tránh hai thanh tiêu đề chồng nhau.
-  const OWN_HEADER: StepId[] = ['step0', 'step1', 'step5a', 'step5b', 'step6'];
-  const isFlowStep = !OWN_HEADER.includes(booking.currentStep);
+    handleBack();
+    return true;
+  }, [order, booking.currentStep, booking.previousStepHistory.length]);
+
+  useNativeShell({ onBack: handleHardwareBack });
 
   // [R-4] Loading / No Internet / Error cho cấu hình dùng chung
   if (bootstrap.loading || auth.status === 'checking') {
@@ -236,15 +250,8 @@ export default function App() {
     <div className="min-h-screen relative font-sans text-stone-900 bg-stone-50 flex flex-col justify-between selection:bg-red-100 selection:text-[#D42A2A]">
       <BackgroundDecoration />
 
-      {isFlowStep && (
-        <ProgressIndicator
-          currentStep={booking.currentStep}
-          onBack={handleBack}
-          showHotline={Boolean(step?.showHotline)}
-          title={step?.title ?? ''}
-        />
-      )}
-
+      {/* Bộ thiết kế không có thanh tiến trình: mỗi màn tự dựng ScreenHeader
+          (nút back tròn + tiêu đề + pill hotline) ngay trong khung nội dung. */}
       <main className="relative z-10 flex-1 flex flex-col justify-center">
         {/* BƯỚC 0 – Welcome */}
         {booking.currentStep === 'step0' && (
@@ -287,6 +294,7 @@ export default function App() {
               setBooking((prev) => ({ ...prev, isDefaultAddress: isDefault }))
             }
             onNext={() => goToStep('step4')}
+            onBack={handleBack}
           />
         )}
 
@@ -301,6 +309,7 @@ export default function App() {
               setBooking((prev) => ({ ...prev, packageCategory: 'monthly' }));
               goToStep('step5b');
             }}
+            onBack={handleBack}
           />
         )}
 
@@ -384,6 +393,7 @@ export default function App() {
             onUpdatePaymentMethod={(m) => setBooking((prev) => ({ ...prev, paymentMethod: m }))}
             onUpdateVoucher={(v) => setBooking((prev) => ({ ...prev, voucher: v }))}
             onSubmitOrder={handleSubmitOrder}
+            onBack={handleBack}
           />
         )}
       </main>

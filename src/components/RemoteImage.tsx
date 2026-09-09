@@ -57,3 +57,33 @@ export const RemoteImage: React.FC<RemoteImageProps> = ({
     </picture>
   );
 };
+
+/**
+ * Ảnh gắn sẵn trong một bản ghi có các trường `image*` (khối nội dung, dịch vụ).
+ *
+ * Dùng cái này thay vì `useImage('<mã cứng>')`: ảnh đi theo bản ghi trong DB nên
+ * đổi ảnh chỉ cần sửa `anh_id`, không phải build lại app.
+ */
+export interface HasImageFields {
+  code?: string;
+  imageWebp: string | null;
+  imageAvif: string | null;
+  imageWidth: number | null;
+  imageHeight: number | null;
+  imageAlt: string | null;
+  imageColor: string | null;
+}
+
+export const imageOf = (row: HasImageFields | null | undefined): ApiImage | null =>
+  !row?.imageWebp
+    ? null
+    : {
+        code: row.code ?? '',
+        kind: 'anh_nho',
+        webp: row.imageWebp,
+        avif: row.imageAvif,
+        width: row.imageWidth ?? 640,
+        height: row.imageHeight ?? 360,
+        alt: row.imageAlt,
+        color: row.imageColor,
+      };

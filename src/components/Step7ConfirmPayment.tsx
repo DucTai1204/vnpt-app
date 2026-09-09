@@ -25,12 +25,14 @@ import {
 import { BookingState } from '../types';
 import { AppStatus } from './AppStatus';
 import { RemoteImage } from './RemoteImage';
+import { ScreenHeader } from './ScreenHeader';
 
 interface Step7Props {
   booking: BookingState;
   onUpdatePaymentMethod: (method: string) => void;
   onUpdateVoucher: (voucherCode: string) => void;
   onSubmitOrder: () => Promise<void>;
+  onBack: () => void;
 }
 
 const money = (n: number) => `${n.toLocaleString('vi-VN')} đ`;
@@ -43,6 +45,7 @@ export const Step7ConfirmPayment: React.FC<Step7Props> = ({
   onUpdatePaymentMethod,
   onUpdateVoucher,
   onSubmitOrder,
+  onBack,
 }) => {
   const anhXacNhan = useImage('dv-nguoi-gia');
   const step = useStep('step7');
@@ -160,12 +163,14 @@ export const Step7ConfirmPayment: React.FC<Step7Props> = ({
   const firstSession = quote?.sessions?.[0];
 
   return (
-    <div className="w-full max-w-5xl mx-auto py-6 px-4">
-      <div className="bg-white rounded-2xl shadow-xl border border-sky-100 p-6 sm:p-8">
-        <h2 className="text-xl font-bold text-[#0B2E6B] mb-6 pb-3 border-b border-stone-200">
-          {step?.title ?? 'Xác nhận và thanh toán'}
-        </h2>
+    <div className="w-full max-w-6xl mx-auto py-6 px-4">
+      <ScreenHeader
+        title={step?.title ?? 'Xác nhận và thanh toán'}
+        onBack={onBack}
+        showHotline={Boolean(step?.showHotline)}
+      />
 
+      <div className="bg-white rounded-2xl shadow-xl border border-sky-100 p-6 sm:p-8">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           {/* Left Column: Details */}
           <div className="md:col-span-7 space-y-5">

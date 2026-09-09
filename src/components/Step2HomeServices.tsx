@@ -29,7 +29,9 @@ export const Step2HomeServices: React.FC<Step2HomeServicesProps> = ({
   const appName = useSetting('app.ten', '');
   const slogan = useSetting('app.slogan', '');
   const step = useStep('step2');
-  const navTabs = useBootstrap().data?.navTabs.filter((t) => t.position === 'duoi') ?? [];
+  // Vị trí thanh menu do DB quyết định (tab_dieu_huong.vi_tri), FE không gán cứng.
+  const navTabs = useBootstrap().data?.navTabs ?? [];
+  const navPosition = navTabs[0]?.position ?? 'tren';
   const hotline = useSetting('app.hotline', '');
   const { profile } = useAuth();
 
@@ -57,8 +59,50 @@ export const Step2HomeServices: React.FC<Step2HomeServicesProps> = ({
     return () => controller.abort();
   }, [attempt]);
 
+  /**
+   * Thanh menu — nguồn: bảng `tab_dieu_huong` qua /bootstrap.
+   * Tab đang chọn được gạch chân màu xanh, đúng như bộ thiết kế.
+   */
+  const navBar = (
+    <nav
+      className={
+        navPosition === 'duoi'
+          ? 'fixed bottom-0 left-0 right-0 bg-white border-t border-hairline shadow-lg z-30 px-6 py-2'
+          : 'bg-white rounded-2xl border border-hairline shadow-sm mb-6 px-4'
+      }
+    >
+      <div className="max-w-3xl mx-auto grid grid-cols-3">
+        {navTabs.map((tab) => {
+          const Icon = NAV_ICONS[tab.icon ?? ''] ?? Home;
+          const isActive = activeTab === tab.code;
+          return (
+            <button
+              key={tab.code}
+              type="button"
+              aria-current={isActive ? 'page' : undefined}
+              onClick={() => setActiveTab(tab.code)}
+              className={`relative flex items-center justify-center gap-2 py-3 text-sm font-semibold cursor-pointer transition-colors ${
+                isActive ? 'text-brand' : 'text-navy-soft hover:text-navy'
+              }`}
+            >
+              <Icon className="w-5 h-5 shrink-0" />
+              <span>{tab.label}</span>
+              {isActive && (
+                <span
+                  className={`absolute inset-x-4 h-1 rounded-full bg-brand ${
+                    navPosition === 'duoi' ? 'bottom-0' : 'top-0'
+                  }`}
+                />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+
   return (
-    <div className="w-full max-w-5xl mx-auto pb-24 pt-4 px-4">
+    <div className="w-full max-w-5xl mx-auto pt-4 px-4">
       {/* Top Header Card */}
       <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-sky-100 mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -90,6 +134,8 @@ export const Step2HomeServices: React.FC<Step2HomeServicesProps> = ({
           </div>
         </div>
       </div>
+
+      {navPosition !== 'duoi' && navBar}
 
       {/* Tab Tài khoản — hồ sơ + đăng xuất */}
       {activeTab === 'tai_khoan' && (
@@ -249,29 +295,8 @@ export const Step2HomeServices: React.FC<Step2HomeServicesProps> = ({
       </>
       )}
 
-      {/* Bottom Navigation Bar — nguồn: bảng tab_dieu_huong qua /bootstrap */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 shadow-lg z-30 px-6 py-2">
-        <div className="max-w-md mx-auto flex items-center justify-around">
-          {navTabs.map((tab) => {
-            const Icon = NAV_ICONS[tab.icon ?? ''] ?? Home;
-            const isActive = activeTab === tab.code;
-            return (
-              <button
-                key={tab.code}
-                type="button"
-                aria-current={isActive ? 'page' : undefined}
-                onClick={() => setActiveTab(tab.code)}
-                className={`flex flex-col items-center gap-1 text-xs font-semibold cursor-pointer ${
-                  isActive ? 'text-[#0B2E6B]' : 'text-stone-400 hover:text-stone-600'
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </nav>
+      {navPosition === 'duoi' && <div className="h-20" aria-hidden="true" />}
+      {navPosition === 'duoi' && navBar}
     </div>
   );
 };

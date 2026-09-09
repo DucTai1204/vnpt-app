@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
-import { User, Phone, MapPin, Map, Check } from 'lucide-react';
+import { Check, Map } from 'lucide-react';
 import { useOptions, useStep } from '../api/BootstrapContext';
+import { ScreenHeader } from './ScreenHeader';
 
 interface Step3Props {
   bookerName: string;
@@ -15,8 +16,16 @@ interface Step3Props {
   onUpdateLocationType: (type: string) => void;
   onUpdateDefault: (isDefault: boolean) => void;
   onNext: () => void;
+  onBack: () => void;
 }
 
+/**
+ * Cập nhật địa chỉ — dựng theo "4-man hinh them dia chi 1280 x 800".
+ *
+ * Bố cục: header back + tiêu đề, dưới là hai thẻ trắng cạnh nhau (thông tin
+ * người đặt | địa chỉ người cần chăm), cuối cùng là nút "Lưu" xanh tràn ngang.
+ * Thiết kế không có icon trong ô nhập và không có thanh tiến trình.
+ */
 export const Step3UpdateAddress: React.FC<Step3Props> = ({
   bookerName,
   bookerPhone,
@@ -29,6 +38,7 @@ export const Step3UpdateAddress: React.FC<Step3Props> = ({
   onUpdateLocationType,
   onUpdateDefault,
   onNext,
+  onBack,
 }) => {
   const step = useStep('step3');
   const locationOptions = useOptions('loai_dia_diem');
@@ -40,137 +50,132 @@ export const Step3UpdateAddress: React.FC<Step3Props> = ({
     }
   }, [locationType, locationOptions, onUpdateLocationType]);
 
+  const inputClass =
+    'w-full px-4 py-3 bg-white border border-hairline rounded-xl text-base text-ink ' +
+    'placeholder:text-slate-400 focus:outline-none focus:border-brand transition-colors';
+
   return (
-    <div className="w-full max-w-4xl mx-auto py-6 px-4">
-      <div className="bg-white rounded-2xl shadow-xl border border-sky-100 p-6 sm:p-8">
-        <h2 className="text-xl font-bold text-[#0B2E6B] mb-6 flex items-center gap-2 pb-3 border-b border-stone-200">
-          <MapPin className="w-5 h-5 text-[#D42A2A]" />
-          <span>{step?.title ?? 'Cập nhật địa chỉ'}</span>
-        </h2>
+    <div className="w-full max-w-6xl mx-auto py-6 px-4">
+      <ScreenHeader
+        title={step?.title ?? 'Cập nhật địa chỉ'}
+        onBack={onBack}
+        showHotline={Boolean(step?.showHotline)}
+      />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          {/* Left Column: Thông tin người đặt */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-bold text-[#0B2E6B] uppercase tracking-wider pb-1 border-b border-stone-100">
-              Thông tin người đặt
-            </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+        {/* Trái: thông tin người đặt */}
+        <div className="bg-white rounded-2xl border border-hairline p-5 sm:p-6 space-y-4">
+          <h2 className="text-lg font-bold text-navy">Thông tin người đặt</h2>
 
-            {/* Booker Name */}
-            <div>
-              <label className="block text-xs font-semibold text-stone-700 mb-1">
-                Họ và tên người đặt
-              </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={bookerName}
-                  onChange={(e) => onUpdateName(e.target.value)}
-                  placeholder="Nhập tên người đặt"
-                  className="w-full pl-10 pr-4 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#0B2E6B] focus:bg-white transition-all"
-                />
-              </div>
-            </div>
-
-            {/* Booker Phone */}
-            <div>
-              <label className="block text-xs font-semibold text-stone-700 mb-1">
-                Số điện thoại liên hệ
-              </label>
-              <div className="relative">
-                <Phone className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="tel"
-                  value={bookerPhone}
-                  onChange={(e) => onUpdatePhone(e.target.value)}
-                  placeholder="Nhập số điện thoại"
-                  className="w-full pl-10 pr-4 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#0B2E6B] focus:bg-white transition-all"
-                />
-              </div>
-            </div>
+          <div>
+            <label className="sr-only" htmlFor="booker-name">
+              Họ và tên người đặt
+            </label>
+            <input
+              id="booker-name"
+              type="text"
+              value={bookerName}
+              onChange={(e) => onUpdateName(e.target.value)}
+              placeholder="Họ và tên người đặt"
+              className={inputClass}
+            />
           </div>
 
-          {/* Right Column: Địa chỉ người cần chăm */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between pb-1 border-b border-stone-100">
-              <h3 className="text-sm font-bold text-[#0B2E6B] uppercase tracking-wider">
-                Địa chỉ người cần chăm
-              </h3>
-              <button
-                type="button"
-                onClick={() => alert('Đã mở vị trí bản đồ giả lập')}
-                className="text-xs font-bold text-[#0B2E6B] hover:text-[#D42A2A] flex items-center gap-1 cursor-pointer"
-              >
-                <Map className="w-3.5 h-3.5" />
-                <span>Chọn trên bản đồ</span>
-              </button>
-            </div>
+          <div>
+            <label className="sr-only" htmlFor="booker-phone">
+              Số điện thoại liên hệ
+            </label>
+            <input
+              id="booker-phone"
+              type="tel"
+              inputMode="numeric"
+              value={bookerPhone}
+              onChange={(e) => onUpdatePhone(e.target.value)}
+              placeholder="Số điện thoại liên hệ"
+              className={inputClass}
+            />
+          </div>
+        </div>
 
-            {/* Address Textarea */}
-            <div>
-              <label className="block text-xs font-semibold text-stone-700 mb-1">
-                Địa chỉ chi tiết (Số nhà, đường, phường/xã, quận/huyện)
-              </label>
-              <textarea
-                rows={3}
-                value={address}
-                onChange={(e) => onUpdateAddress(e.target.value)}
-                placeholder="Nhập địa chỉ đầy đủ"
-                className="w-full p-3 bg-stone-50 border border-stone-300 rounded-xl text-sm font-medium text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#0B2E6B] focus:bg-white transition-all resize-none"
-              />
-            </div>
+        {/* Phải: địa chỉ người cần chăm */}
+        <div className="bg-white rounded-2xl border border-hairline p-5 sm:p-6 space-y-4">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <h2 className="text-lg font-bold text-navy">Địa chỉ người cần chăm</h2>
+            <button
+              type="button"
+              onClick={() => alert('Đã mở vị trí bản đồ giả lập')}
+              className="flex items-center gap-1.5 text-sm font-semibold text-brand-text cursor-pointer hover:underline"
+            >
+              <Map className="w-4 h-4" />
+              <span>Chọn trên bản đồ</span>
+            </button>
+          </div>
 
-            {/* Location Type Pills */}
-            <div>
-              <label className="block text-xs font-semibold text-stone-700 mb-2">
-                Địa điểm
-              </label>
-              <div className="flex items-center gap-2">
-                {locationOptions.map((opt) => (
+          <div>
+            <label className="sr-only" htmlFor="address">
+              Địa chỉ chi tiết
+            </label>
+            <textarea
+              id="address"
+              rows={2}
+              value={address}
+              onChange={(e) => onUpdateAddress(e.target.value)}
+              placeholder="Số nhà, đường, phường/xã, tỉnh/thành phố"
+              className={`${inputClass} resize-none leading-relaxed`}
+            />
+          </div>
+
+          <div>
+            <p className="text-base font-bold text-navy mb-2">Địa điểm</p>
+            {/* Nguồn: bộ lựa chọn `loai_dia_diem` của backend, không gán cứng */}
+            <div className="grid grid-cols-3 gap-3">
+              {locationOptions.map((opt) => {
+                const on = locationType === opt.value;
+                return (
                   <button
                     key={opt.value}
                     type="button"
-                    aria-pressed={locationType === opt.value}
+                    aria-pressed={on}
                     onClick={() => onUpdateLocationType(opt.value)}
-                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                      locationType === opt.value
-                        ? 'bg-sky-50 text-[#0B2E6B] border-2 border-[#0B2E6B] shadow-xs'
-                        : 'bg-stone-100 text-stone-600 border border-stone-200 hover:bg-stone-200'
+                    className={`h-12 rounded-xl text-base font-medium transition-colors cursor-pointer border ${
+                      on
+                        ? 'bg-pill-surface text-pill-on border-brand'
+                        : 'bg-white text-ink border-hairline hover:border-brand-border'
                     }`}
                   >
                     {opt.label}
                   </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Default Address Checkbox */}
-            <div className="pt-2">
-              <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-stone-700">
-                <input
-                  type="checkbox"
-                  checked={isDefaultAddress}
-                  onChange={(e) => onUpdateDefault(e.target.checked)}
-                  className="w-4 h-4 rounded-md accent-emerald-600 cursor-pointer"
-                />
-                <span className="flex items-center gap-1 text-emerald-800 font-bold">
-                  <Check className="w-3.5 h-3.5 text-emerald-600" />
-                  Đặt làm địa chỉ mặc định
-                </span>
-              </label>
+                );
+              })}
             </div>
           </div>
-        </div>
 
-        {/* CTA Navy Button */}
-        <button
-          onClick={onNext}
-          disabled={!address.trim() || !bookerName.trim() || !bookerPhone.trim()}
-          className="w-full py-3.5 px-6 bg-[#0B2E6B] hover:bg-[#082252] text-white font-bold rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Lưu &amp; Tiếp tục
-        </button>
+          <label className="flex items-center gap-2.5 cursor-pointer w-fit">
+            <span
+              className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${
+                isDefaultAddress ? 'bg-check-green' : 'bg-white border border-hairline'
+              }`}
+            >
+              {isDefaultAddress && <Check className="w-4 h-4 text-white" strokeWidth={3} />}
+            </span>
+            <input
+              type="checkbox"
+              checked={isDefaultAddress}
+              onChange={(e) => onUpdateDefault(e.target.checked)}
+              className="sr-only"
+            />
+            <span className="text-base text-ink">Địa chỉ mặc định</span>
+          </label>
+        </div>
       </div>
+
+      <button
+        onClick={onNext}
+        disabled={!address.trim() || !bookerName.trim() || !bookerPhone.trim()}
+        className="w-full h-14 rounded-xl bg-cta-blue hover:bg-cta-blue-dark text-white text-lg font-bold shadow-md transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Lưu
+      </button>
     </div>
   );
 };

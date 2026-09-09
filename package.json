@@ -10,11 +10,17 @@
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "sync:media": "node scripts/sync-media.mjs",
-    "build:pages": "node scripts/sync-media.mjs && vite build && node -e \"require('fs').copyFileSync('dist/index.html','dist/404.html')\""
+    "build:pages": "node scripts/sync-media.mjs && vite build && node -e \"require('fs').copyFileSync('dist/index.html','dist/404.html')\"",
+    "apk": "node scripts/build-apk.mjs",
+    "apk:open": "cap open android",
+    "apk:release": "node scripts/build-apk.mjs --release"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.2",
+    "@capacitor/app": "^6.0.3",
     "@capacitor/core": "^6.2.2",
+    "@capacitor/splash-screen": "^6.0.4",
+    "@capacitor/status-bar": "^6.0.3",
     "@google/genai": "^2.4.0",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
@@ -27,6 +33,7 @@
     "vite": "^6.2.3"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^6.2.2",
     "@types/node": "^22.14.0",
     "@types/react": "^19.2.18",
