@@ -61,6 +61,40 @@
   --color-canvas: #f5f8fe;
 }
 
+/* -----------------------------------------------------------------------------
+ * Thang co giãn cho màn ngang: SmartScreen, TV, máy tính bảng.
+ *
+ * Thiết bị đích đều nằm quanh 1024-1920 rộng và 720-1080 cao. Chiều rộng thì
+ * dư, CHIỀU CAO mới là thứ khan hiếm. Mốc chia của Tailwind chỉ theo chiều rộng
+ * nên cả LDPlayer 1280x720, SmartScreen 1280x800, iPad 1024x768 lẫn TV 1920x1080
+ * đều rơi vào cùng một mốc `lg` — không phân biệt được, và đúng chỗ này đã làm
+ * thẻ đăng nhập cao hơn khung nhìn trên máy ảo.
+ *
+ * Vì vậy dùng `vh` cho mọi kích thước dọc, kèm clamp() chặn hai đầu để trên TV
+ * không phình quá lớn và trên màn thấp không co quá nhỏ đến mức khó đọc.
+ * -------------------------------------------------------------------------- */
+:root {
+  /* Cỡ chữ */
+  --fs-hero: clamp(1.5rem, 5.2vh, 3.25rem);   /* "Trẻ cậy cha, già cậy SAN" */
+  --fs-title: clamp(1.25rem, 3.8vh, 2.25rem); /* tiêu đề màn, vd "Đăng nhập" */
+  --fs-item: clamp(0.8rem, 2.3vh, 1.25rem);   /* dòng dịch vụ, nhãn nút */
+  --fs-body: clamp(0.75rem, 1.9vh, 1rem);     /* chữ thường */
+
+  /* Khoảng cách dọc */
+  --sp-block: clamp(0.5rem, 2vh, 1.5rem);     /* giữa các khối */
+  --sp-tight: clamp(0.35rem, 1.2vh, 0.85rem); /* trong một khối */
+
+  /* Chiều cao thành phần bấm được — [R-2.4] tối thiểu 44px cho cảm ứng */
+  --h-control: clamp(2.75rem, 7vh, 3.5rem);
+  --pad-card: clamp(0.85rem, 3vh, 2rem);
+}
+
+/* TV lớn: chặn bề ngang để nội dung không bị kéo dãn quá thưa */
+.app-wide {
+  max-width: 1600px;
+  margin-inline: auto;
+}
+
 /* [R-2.4] Loại bỏ delay 300ms khi chạm trên SmartScreen */
 html {
   touch-action: manipulation;

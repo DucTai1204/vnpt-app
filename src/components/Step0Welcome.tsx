@@ -39,7 +39,7 @@ export const Step0Welcome: React.FC<Step0Props> = ({ onLogin, onRegister }) => {
 
   return (
     <div
-      className="relative w-full min-h-screen overflow-hidden"
+      className="relative w-full h-screen overflow-hidden"
       style={{
         background:
           'linear-gradient(180deg, var(--color-hero-1) 0%, var(--color-hero-2) 45%, var(--color-hero-3) 75%, var(--color-hero-4) 100%)',
@@ -65,16 +65,19 @@ export const Step0Welcome: React.FC<Step0Props> = ({ onLogin, onRegister }) => {
       </div>
 
       {/* Cột chữ — canh giữa theo chiều dọc như thiết kế */}
-      <div className="relative min-h-screen flex items-center">
-        <div className="w-full md:w-[52%] px-6 sm:px-10 lg:px-16 py-10 space-y-5">
+      <div className="app-wide relative h-full flex items-center">
+        <div
+          className="w-full md:w-[52%] px-6 sm:px-10 lg:px-16"
+          style={{ display: 'grid', gap: 'var(--sp-block)' }}
+        >
           <SanLogo size="lg" showSubtitle={false} />
 
           {hero?.subtitle && (
-            <p className="text-sm sm:text-base font-semibold text-navy">{hero.subtitle}</p>
+            <p className="text-[length:var(--fs-body)] font-semibold text-navy">{hero.subtitle}</p>
           )}
 
           <div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold italic text-crimson leading-tight">
+            <h1 className="text-[length:var(--fs-hero)] font-bold italic text-crimson leading-tight">
               {hero?.title ?? 'Trẻ cậy cha, già cậy SAN'}
             </h1>
             {/* Gạch ngang có trái tim ở giữa, như thiết kế */}
@@ -91,7 +94,7 @@ export const Step0Welcome: React.FC<Step0Props> = ({ onLogin, onRegister }) => {
           </div>
 
           {/* 3 dịch vụ — nguồn: /catalog/services */}
-          <ul className="space-y-3.5">
+          <ul style={{ display: 'grid', gap: 'var(--sp-tight)' }}>
             {services === null &&
               [0, 1, 2].map((i) => (
                 <li
@@ -104,7 +107,7 @@ export const Step0Welcome: React.FC<Step0Props> = ({ onLogin, onRegister }) => {
             {services?.map((s) => (
               <li key={s.code} className="flex items-center gap-3">
                 <span className="w-3.5 h-3.5 rounded-full bg-dot-red shrink-0" />
-                <span className="text-sm sm:text-base lg:text-lg font-bold text-navy uppercase tracking-wide">
+                <span className="text-[length:var(--fs-item)] font-bold text-navy uppercase tracking-wide">
                   {s.title}
                 </span>
               </li>
@@ -125,11 +128,11 @@ export const Step0Welcome: React.FC<Step0Props> = ({ onLogin, onRegister }) => {
             </div>
           )}
 
-          <div className="space-y-3 pt-2 max-w-md">
+          <div className="max-w-md" style={{ display: 'grid', gap: 'var(--sp-tight)' }}>
             <button
               type="button"
               onClick={onLogin}
-              className="w-full h-14 rounded-xl bg-linear-to-b from-login-from to-login-to text-white text-lg font-bold shadow-lg hover:brightness-110 transition-[filter] cursor-pointer"
+              className="w-full h-[var(--h-control)] rounded-xl bg-linear-to-b from-login-from to-login-to text-white text-[length:var(--fs-item)] font-bold shadow-lg hover:brightness-110 transition-[filter] cursor-pointer"
             >
               {hero?.ctaLabel ?? 'Đăng nhập'}
             </button>
@@ -137,7 +140,7 @@ export const Step0Welcome: React.FC<Step0Props> = ({ onLogin, onRegister }) => {
             <button
               type="button"
               onClick={onRegister}
-              className="w-full h-14 rounded-xl bg-linear-to-b from-signup-from to-signup-to text-brand-text text-lg font-bold shadow-md hover:brightness-105 transition-[filter] cursor-pointer"
+              className="w-full h-[var(--h-control)] rounded-xl bg-linear-to-b from-signup-from to-signup-to text-brand-text text-[length:var(--fs-item)] font-bold shadow-md hover:brightness-105 transition-[filter] cursor-pointer"
             >
               Đăng ký
             </button>
@@ -145,12 +148,13 @@ export const Step0Welcome: React.FC<Step0Props> = ({ onLogin, onRegister }) => {
         </div>
       </div>
 
-      {/* Màn hẹp: ảnh nằm dưới cùng, không cắt mất mặt người */}
-      <div className="md:hidden">
+      {/* Màn hẹp: ảnh nằm dải dưới cùng. Đặt tuyệt đối vì khung ngoài đã khoá
+          `h-screen overflow-hidden` — để trong luồng thì nó bị cắt mất. */}
+      <div className="md:hidden absolute inset-x-0 bottom-0 h-[28vh]">
         <RemoteImage
           image={banner}
           alt={banner?.alt ?? 'Điều dưỡng SAN chăm sóc người bệnh'}
-          className="w-full h-56 object-cover"
+          className="w-full h-full object-cover"
         />
       </div>
     </div>

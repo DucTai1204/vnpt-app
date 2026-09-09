@@ -73,7 +73,7 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
 
   /** Ô nhập có icon trong khối bo tròn nền xanh nhạt, như thiết kế. */
   const field = (icon: React.ReactNode, input: React.ReactNode, trailing?: React.ReactNode) => (
-    <div className="flex items-center gap-3 h-12 rounded-xl bg-white border border-hairline px-3 focus-within:border-brand transition-colors">
+    <div className="flex items-center gap-3 h-[var(--h-control)] rounded-xl bg-white border border-hairline px-3 focus-within:border-brand transition-colors">
       <span className="w-9 h-9 rounded-lg bg-field-icon text-brand flex items-center justify-center shrink-0">
         {icon}
       </span>
@@ -84,7 +84,7 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
 
   return (
     <div
-      className="relative w-full min-h-screen overflow-hidden"
+      className="relative w-full h-screen overflow-hidden"
       style={{
         background:
           'linear-gradient(to bottom left, var(--color-signin-light) 0%, var(--color-signin-mid) 50%, var(--color-signin-deep) 100%)',
@@ -108,15 +108,18 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
           bị đội xuống quá khung nhìn -> trang cuộn, logo trôi mất khỏi màn. */}
       <div className="absolute top-0 left-0 z-20 flex items-center gap-3 flex-wrap px-4 sm:px-8 lg:px-12 pt-4 lg:pt-6">
         <SanLogo size="lg" showSubtitle={false} />
-        <p className="text-base sm:text-xl lg:text-2xl font-bold italic text-crimson">
+        <p className="text-[length:var(--fs-title)] font-bold italic text-crimson">
           {hero?.title ?? 'Trẻ cậy cha, già cậy SAN'}
         </p>
       </div>
 
       {/* Thẻ form, nửa phải, canh giữa theo chiều dọc.
           Cao quá khung nhìn thì tự cuộn BÊN TRONG thẻ, không đẩy cả trang. */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center lg:justify-end px-4 sm:px-8 lg:px-12 py-4">
-        <div className="w-full max-w-md max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4">
+      <div className="app-wide relative z-10 h-full flex items-center justify-center lg:justify-end px-4 sm:px-8 lg:px-12">
+        <div
+          className="w-full max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl"
+          style={{ padding: 'var(--pad-card)', display: 'grid', gap: 'var(--sp-block)' }}
+        >
           <button
             type="button"
             onClick={onBack}
@@ -127,10 +130,10 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
           </button>
 
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-navy">
+            <h1 className="text-[length:var(--fs-title)] font-extrabold text-navy leading-tight">
               {step?.title ?? 'Đăng nhập'}
             </h1>
-            <p className="text-sm text-muted mt-1">
+            <p className="text-[length:var(--fs-body)] text-muted mt-1">
               {step?.subtitle ?? 'Nhập số điện thoại và mật khẩu để tiếp tục'}
             </p>
           </div>
@@ -142,7 +145,7 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 'var(--sp-tight)' }}>
             <label className="sr-only" htmlFor="phone">
               Số điện thoại
             </label>
@@ -220,7 +223,7 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
             <button
               type="submit"
               disabled={submitting}
-              className="w-full h-12 rounded-xl bg-linear-to-r from-cta-from to-cta-to text-white text-lg font-bold shadow-md hover:brightness-105 transition-[filter] cursor-pointer disabled:opacity-70 flex items-center justify-center gap-2"
+              className="w-full h-[var(--h-control)] rounded-xl bg-linear-to-r from-cta-from to-cta-to text-white text-[length:var(--fs-item)] font-bold shadow-md hover:brightness-105 transition-[filter] cursor-pointer disabled:opacity-70 flex items-center justify-center gap-2"
             >
               {submitting && <Loader2 className="w-5 h-5 animate-spin" />}
               <span>{submitting ? 'Đang đăng nhập...' : 'Đăng nhập'}</span>
