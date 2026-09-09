@@ -18,6 +18,16 @@ interface RemoteImageProps {
   className?: string;
   /** Ảnh nằm trong khung đầu tiên (banner welcome) -> tải ngay, không lazy. */
   priority?: boolean;
+  /**
+   * Ảnh đã tách nền. Bỏ luôn màu nền chờ tải.
+   *
+   * Mặc định thẻ <img> được tô `image.color` để lúc tải không nhấp nháy trắng.
+   * Nhưng với ảnh trong suốt đặt `object-contain`, thẻ <img> vẫn chiếm trọn
+   * khung còn ảnh chỉ nằm gọn ở giữa — màu nền đó tô kín phần lề, ra một mảng
+   * đặc che mất nền thật. Đã dính đúng lỗi này ở màn đăng nhập: cả nửa trái
+   * thành khối navy #0B2E6B.
+   */
+  transparent?: boolean;
 }
 
 export const RemoteImage: React.FC<RemoteImageProps> = ({
@@ -25,8 +35,9 @@ export const RemoteImage: React.FC<RemoteImageProps> = ({
   alt,
   className = '',
   priority = false,
+  transparent = false,
 }) => {
-  const placeholder = image?.color ?? '#E2E8F0';
+  const placeholder = transparent ? undefined : (image?.color ?? '#E2E8F0');
 
   if (!image) {
     return (

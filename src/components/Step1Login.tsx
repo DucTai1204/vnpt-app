@@ -21,10 +21,12 @@ interface Step1LoginProps {
  * logo và slogan ở góc trên trái, ảnh nhân viên dìu người cao tuổi chiếm nửa
  * trái và chạy hết mép dưới, thẻ trắng chứa form nằm bên phải canh giữa.
  *
- * Ảnh dùng `object-contain` neo đáy vì thiết kế dùng ảnh ĐÃ TÁCH NỀN. Khi thay
- * `dv-nguoi-gia` bằng bản PNG trong suốt là khớp thiết kế ngay, không phải sửa
- * layout. Trong lúc chưa có bản tách nền, lớp phủ `photo-blend` bên dưới làm
- * mềm mép ảnh chữ nhật — xoá lớp đó đi khi đã có PNG trong suốt.
+ * Ảnh dùng mã `login-hero` (bản đã tách nền), `object-contain` neo đáy trái và
+ * cờ `transparent` để thẻ <img> không bị tô màu chủ đạo lên phần lề.
+ *
+ * Logo đặt tuyệt đối, thẻ form tự cuộn bên trong: trên màn ngang thấp như máy
+ * ảo 1280x720, để chúng nằm trong luồng sẽ làm cả trang cuộn, logo trôi khỏi
+ * khung nhìn còn dòng "Chưa có tài khoản" bị cắt mất.
  *
  * [R-1.5] Trên SmartScreen phiên đến từ SSO của HomeHub — màn này chỉ là đường
  * lùi ở máy dev. Bản Store đặt ALLOW_DEV_LOGIN=false thì backend trả NO_PERMISSION.
@@ -71,7 +73,7 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
 
   /** Ô nhập có icon trong khối bo tròn nền xanh nhạt, như thiết kế. */
   const field = (icon: React.ReactNode, input: React.ReactNode, trailing?: React.ReactNode) => (
-    <div className="flex items-center gap-3 h-14 rounded-xl bg-white border border-hairline px-3 focus-within:border-brand transition-colors">
+    <div className="flex items-center gap-3 h-12 rounded-xl bg-white border border-hairline px-3 focus-within:border-brand transition-colors">
       <span className="w-9 h-9 rounded-lg bg-field-icon text-brand flex items-center justify-center shrink-0">
         {icon}
       </span>
@@ -89,39 +91,43 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
       }}
     >
       {/* Ảnh nửa trái, neo đáy. Ảnh đã tách nền nên dùng `object-contain` để
-          không cắt mất người và không cần lớp phủ hoà mép nào.
+          không cắt mất người, và `transparent` để không bị tô nền màu chủ đạo.
           Màn hẹp ẩn đi để không đè lên form. */}
-      <div className="absolute bottom-0 left-0 w-[58%] h-[86%] hidden lg:block">
+      <div className="absolute bottom-0 left-0 w-[52%] h-[80%] hidden lg:block">
         <RemoteImage
           image={photo}
           alt={photo?.alt ?? 'Nhân viên SAN dìu người cao tuổi'}
-          className="w-full h-full object-contain object-bottom"
+          className="w-full h-full object-contain object-left-bottom"
           priority
+          transparent
         />
       </div>
 
-      {/* Logo + slogan, góc trên trái */}
-      <div className="relative z-10 flex items-center gap-4 flex-wrap px-6 sm:px-10 lg:px-14 pt-8">
+      {/* Logo + slogan: đặt tuyệt đối để KHÔNG đẩy thẻ form xuống. Trước đây
+          nó nằm trong luồng, trên màn ngang thấp (1280x720 của máy ảo) thẻ form
+          bị đội xuống quá khung nhìn -> trang cuộn, logo trôi mất khỏi màn. */}
+      <div className="absolute top-0 left-0 z-20 flex items-center gap-3 flex-wrap px-4 sm:px-8 lg:px-12 pt-4 lg:pt-6">
         <SanLogo size="lg" showSubtitle={false} />
-        <p className="text-lg sm:text-2xl lg:text-3xl font-bold italic text-crimson">
+        <p className="text-base sm:text-xl lg:text-2xl font-bold italic text-crimson">
           {hero?.title ?? 'Trẻ cậy cha, già cậy SAN'}
         </p>
       </div>
 
-      {/* Thẻ form, nửa phải, canh giữa theo chiều dọc */}
-      <div className="relative z-10 min-h-[calc(100vh-7rem)] flex items-center justify-center lg:justify-end px-4 sm:px-8 lg:px-14 py-8">
-        <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 sm:p-8 space-y-5">
+      {/* Thẻ form, nửa phải, canh giữa theo chiều dọc.
+          Cao quá khung nhìn thì tự cuộn BÊN TRONG thẻ, không đẩy cả trang. */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center lg:justify-end px-4 sm:px-8 lg:px-12 py-4">
+        <div className="w-full max-w-md max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4">
           <button
             type="button"
             onClick={onBack}
             aria-label="Quay lại"
-            className="w-11 h-11 rounded-full bg-white border border-hairline text-navy flex items-center justify-center hover:bg-brand-surface transition-colors cursor-pointer"
+            className="w-10 h-10 rounded-full bg-white border border-hairline text-navy flex items-center justify-center hover:bg-brand-surface transition-colors cursor-pointer"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
 
           <div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-navy">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-navy">
               {step?.title ?? 'Đăng nhập'}
             </h1>
             <p className="text-sm text-muted mt-1">
@@ -136,7 +142,7 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <label className="sr-only" htmlFor="phone">
               Số điện thoại
             </label>
@@ -214,7 +220,7 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
             <button
               type="submit"
               disabled={submitting}
-              className="w-full h-14 rounded-xl bg-linear-to-r from-cta-from to-cta-to text-white text-lg font-bold shadow-md hover:brightness-105 transition-[filter] cursor-pointer disabled:opacity-70 flex items-center justify-center gap-2"
+              className="w-full h-12 rounded-xl bg-linear-to-r from-cta-from to-cta-to text-white text-lg font-bold shadow-md hover:brightness-105 transition-[filter] cursor-pointer disabled:opacity-70 flex items-center justify-center gap-2"
             >
               {submitting && <Loader2 className="w-5 h-5 animate-spin" />}
               <span>{submitting ? 'Đang đăng nhập...' : 'Đăng nhập'}</span>
@@ -230,7 +236,7 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
             </div>
           </form>
 
-          <div className="pt-4 border-t border-hairline text-center text-sm text-ink">
+          <div className="pt-3 border-t border-hairline text-center text-sm text-ink">
             Chưa có tài khoản?{' '}
             <button
               type="button"
