@@ -40,6 +40,12 @@
   --color-signup-to: #86d4fd;
   --color-dot-red: #c32008;     /* chấm tròn trước mỗi dịch vụ */
 
+  /* Màn đăng nhập full màn hình — đo từ "2-man hinh 2 log on" */
+  --color-signin-light: #aad4fd; /* góc trên phải, nhạt nhất */
+  --color-signin-mid: #9acafd;
+  --color-signin-deep: #63b0fc;  /* góc dưới trái, đậm nhất */
+  --color-field-icon: #e1effd;   /* khối bo tròn bọc icon trong ô nhập */
+
   /* Đo từ 3-man hinh chon dv / 4-man hinh them dia chi / 5-man hinh chon ngay */
   --color-cta-blue: #0558b4;      /* nút "Lưu", "Chọn dịch vụ" */
   --color-cta-blue-dark: #04437f; /* trạng thái hover */
