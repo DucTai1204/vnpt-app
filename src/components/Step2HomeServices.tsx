@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Bell, User, Home, ClipboardList, UserCircle2, ChevronRight, Phone } from 'lucide-react';
+import { Bell, User, Home, ClipboardList, UserCircle2, ChevronRight } from 'lucide-react';
 import { SanLogo } from './SanLogo';
 import { RemoteImage } from './RemoteImage';
 import { ApiError, ApiService, getServices } from '../api/client';
 import { useBootstrap, useSetting, useStep } from '../api/BootstrapContext';
+import { AccountPanel } from './AccountPanel';
 import { BookingList } from './BookingList';
 import { LogoutButton } from './LogoutButton';
-import { useAuth } from '../api/AuthContext';
 
 /** Icon do DB chỉ định (tab_dieu_huong.icon). */
 const NAV_ICONS: Record<string, React.ElementType> = { Home, ClipboardList, UserCircle2 };
@@ -33,8 +33,6 @@ export const Step2HomeServices: React.FC<Step2HomeServicesProps> = ({
   // Vị trí thanh menu do DB quyết định (tab_dieu_huong.vi_tri), FE không gán cứng.
   const navTabs = useBootstrap().data?.navTabs ?? [];
   const navPosition = navTabs[0]?.position ?? 'tren';
-  const hotline = useSetting('app.hotline', '');
-  const { profile } = useAuth();
 
   // Danh sách dịch vụ + ảnh lấy từ backend, không hardcode trong FE nữa.
   const [services, setServices] = useState<ApiService[] | null>(null);
@@ -138,32 +136,10 @@ export const Step2HomeServices: React.FC<Step2HomeServicesProps> = ({
 
       {navPosition !== 'duoi' && navBar}
 
-      {/* Tab Tài khoản — hồ sơ + đăng xuất */}
+      {/* Tab Tài khoản — hồ sơ, sổ địa chỉ, bệnh nền */}
       {activeTab === 'tai_khoan' && (
-        <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-6 mb-8 space-y-5">
-          <h3 className="text-lg font-bold text-[#0B2E6B]">Tài khoản</h3>
-
-          <div className="flex items-center gap-3 pb-4 border-b border-stone-100">
-            <div className="w-12 h-12 rounded-full bg-sky-100 text-[#0B2E6B] flex items-center justify-center border border-sky-200">
-              <User className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-[#0B2E6B]">{profile?.displayName ?? bookerName}</p>
-              <p className="text-xs text-stone-500">{profile?.phone ?? ''}</p>
-            </div>
-          </div>
-
-          {hotline && (
-            <a
-              href={`tel:${hotline}`}
-              className="flex items-center gap-2 text-xs font-semibold text-[#0B2E6B] hover:text-[#D42A2A] transition-colors"
-            >
-              <Phone className="w-4 h-4" />
-              <span>Tổng đài hỗ trợ {hotline}</span>
-            </a>
-          )}
-
-          <LogoutButton variant="full" alwaysShow className="w-full sm:w-auto" />
+        <div className="mb-8">
+          <AccountPanel bookerName={bookerName} />
         </div>
       )}
 

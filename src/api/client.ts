@@ -328,6 +328,8 @@ export class ApiError extends Error {
 interface Envelope<T> {
   ok: boolean;
   data?: T;
+  /** Chỉ có ở endpoint phân trang: hasMore, nextCursor, isEmpty. */
+  meta?: Record<string, unknown>;
   error?: { code: ApiErrorCode; message: string; details?: unknown };
 }
 
@@ -413,7 +415,10 @@ interface RequestOptions {
   anonymous?: boolean;
 }
 
-async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
+async function requestEnvelope<T>(
+  path: string,
+  opts: RequestOptions = {},
+): Promise<Envelope<T>> {
   const { method = 'GET', body, signal, anonymous = false } = opts;
 
   const headers: Record<string, string> = { Accept: 'application/json', ...NGROK_HEADER };
@@ -436,7 +441,7 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
     throw new ApiError('NO_INTERNET', 'Không có kết nối tới máy chủ');
   }
 
-  if (res.status === 204) return undefined as T;
+  if (res.status === 204) return { ok: true, data: undefined };
 
   let envelope: Envelope<T>;
   try {
@@ -457,8 +462,28 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
       envelope.error?.details,
     );
   }
-  return envelope.data as T;
+  return envelope;
 }
+
+/** Chỉ lấy `data` — dùng cho hầu hết endpoint. */
+async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
+  return (await requestEnvelope<T>(path, opts)).data as T;
+}
+
+/**
+ * Giữ lại cả `meta` của phong bì.
+ *
+ * Endpoint phân trang trả `{ ok, data, meta: { hasMore, nextCursor, isEmpty } }`;
+ * `request` bỏ `meta` đi nên con trỏ sang trang sau bị mất.
+ */
+async function requestWithMeta<T>(
+  path: string,
+  opts: RequestOptions = {},
+): Promise<{ data: T; meta: Record<string, unknown> }> {
+  const env = await requestEnvelope<T>(path, opts);
+  return { data: env.data as T, meta: env.meta ?? {} };
+}
+
 
 /* ------------------------------------------------------------------ */
 /* Endpoint                                                            */
@@ -549,12 +574,97 @@ export const getVouchers = (
 export const createBooking = (payload: CreateBookingInput, signal?: AbortSignal) =>
   request<ApiBookingDetail>('/bookings', { method: 'POST', body: payload, signal });
 
+export interface BookingListQuery {
+  /** Tìm theo mã đơn hoặc tên dịch vụ. */
+  q?: string;
+  status?: string;
+  /** Lọc theo ngày làm đầu tiên, dạng yyyy-mm-dd. */
+  from?: string;
+  to?: string;
+  limit?: number;
+  /** Con trỏ keyset lấy từ `nextCursor` của trang trước. */
+  cursor?: string;
+}
+
+export interface BookingListPage {
+  items: ApiBookingSummary[];
+  hasMore: boolean;
+  nextCursor: string | null;
+  /** true khi người dùng chưa có đơn nào (khác với "lọc ra rỗng"). */
+  isEmpty: boolean;
+}
+
 /** Đơn của chính người đang đăng nhập, mới nhất trước. */
-export const getBookings = (signal?: AbortSignal) =>
-  request<ApiBookingSummary[]>('/bookings', { signal });
+export const getBookings = async (
+  params: BookingListQuery = {},
+  signal?: AbortSignal,
+): Promise<BookingListPage> => {
+  const qs = new URLSearchParams();
+  // Bỏ qua trường rỗng: backend phân biệt "không lọc" với "lọc bằng chuỗi rỗng"
+  for (const [k, v] of Object.entries(params)) {
+    if (v !== undefined && v !== null && v !== '') qs.set(k, String(v));
+  }
+  const suffix = qs.toString() ? `?${qs}` : '';
+  const { data, meta } = await requestWithMeta<ApiBookingSummary[]>(`/bookings${suffix}`, { signal });
+  return {
+    items: data ?? [],
+    hasMore: Boolean(meta.hasMore),
+    nextCursor: (meta.nextCursor as string | null) ?? null,
+    isEmpty: Boolean(meta.isEmpty),
+  };
+};
 
 /** Chi tiết một đơn, kèm `statusHistory` để dựng timeline. */
 export const getBooking = (code: string, signal?: AbortSignal) =>
   request<ApiBookingDetail>(`/bookings/${encodeURIComponent(code)}`, { signal });
+
+/* ------------------------- Địa chỉ & người được chăm ---------------------- */
+
+export interface AddressInput {
+  contactName: string;
+  contactPhone: string;
+  addressLine: string;
+  ward?: string | null;
+  district?: string | null;
+  province?: string | null;
+  locationType: string;
+  hospitalName?: string | null;
+  note?: string | null;
+  isDefault?: boolean;
+}
+
+export const createAddress = (payload: AddressInput, signal?: AbortSignal) =>
+  request<ApiAddress>('/addresses', { method: 'POST', body: payload, signal });
+
+export const updateAddress = (id: number, payload: AddressInput, signal?: AbortSignal) =>
+  request<ApiAddress>(`/addresses/${id}`, { method: 'PATCH', body: payload, signal });
+
+export const deleteAddress = (id: number, signal?: AbortSignal) =>
+  request<unknown>(`/addresses/${id}`, { method: 'DELETE', signal });
+
+export const setDefaultAddress = (id: number, signal?: AbortSignal) =>
+  request<unknown>(`/addresses/${id}/default`, { method: 'POST', signal });
+
+export interface RecipientInput {
+  fullName?: string | null;
+  gender: string;
+  age?: number | null;
+  relationship?: string | null;
+  specialNotes?: string | null;
+  isDefault?: boolean;
+  /** Mã bệnh lý trong bảng benh_ly, ví dụ ['huyet_ap','tri_nho']. */
+  diseaseCodes?: string[];
+  /** Ghi chú riêng từng bệnh, dùng cho mục "Khác". */
+  diseaseNotes?: Record<string, string>;
+}
+
+export const getRecipients = (signal?: AbortSignal) =>
+  request<ApiRecipient[]>('/care-recipients', { signal });
+
+export const createRecipient = (payload: RecipientInput, signal?: AbortSignal) =>
+  request<ApiRecipient>('/care-recipients', { method: 'POST', body: payload, signal });
+
+export const updateRecipient = (id: number, payload: RecipientInput, signal?: AbortSignal) =>
+  request<ApiRecipient>(`/care-recipients/${id}`, { method: 'PATCH', body: payload, signal });
 
 export { request as apiRequest };
