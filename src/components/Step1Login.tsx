@@ -88,22 +88,15 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
           'linear-gradient(to bottom left, var(--color-signin-light) 0%, var(--color-signin-mid) 50%, var(--color-signin-deep) 100%)',
       }}
     >
-      {/* Ảnh nửa trái, neo đáy. Màn hẹp ẩn đi để không đè lên form. */}
-      <div className="absolute inset-y-0 left-0 w-[58%] hidden lg:block">
+      {/* Ảnh nửa trái, neo đáy. Ảnh đã tách nền nên dùng `object-contain` để
+          không cắt mất người và không cần lớp phủ hoà mép nào.
+          Màn hẹp ẩn đi để không đè lên form. */}
+      <div className="absolute bottom-0 left-0 w-[58%] h-[86%] hidden lg:block">
         <RemoteImage
           image={photo}
           alt={photo?.alt ?? 'Nhân viên SAN dìu người cao tuổi'}
-          className="w-full h-full object-cover object-bottom"
+          className="w-full h-full object-contain object-bottom"
           priority
-        />
-        {/* photo-blend: chỉ cần khi ảnh CHƯA tách nền. Có PNG trong suốt thì xoá. */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              'linear-gradient(to left, var(--color-signin-mid) 0%, rgba(154,202,253,0.72) 12%, rgba(154,202,253,0) 38%),' +
-              'linear-gradient(to bottom, var(--color-signin-light) 0%, rgba(170,212,253,0) 22%)',
-          }}
         />
       </div>
 

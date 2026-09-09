@@ -9,7 +9,7 @@
  * Không có thư mục nguồn (ví dụ chạy trên CI, nơi chỉ checkout repo frontend)
  * thì bỏ qua: ảnh đã được commit sẵn trong public/media.
  */
-import { cpSync, existsSync, readdirSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -20,6 +20,21 @@ const dest = join(root, 'public', 'media', 'images');
 if (!existsSync(src)) {
   console.log(`[sync-media] bỏ qua, không thấy ${src} (dùng ảnh đã commit sẵn)`);
   process.exit(0);
+}
+
+// Dọn tệp không còn ở nguồn. `cpSync` chỉ ghi đè chứ không xoá, nên một tệp bỏ
+// vào đây bằng tay sẽ nằm lại mãi và chui vào cả bundle lẫn APK. Đã dính một
+// lần: login.png 1.4MB làm APK phình thêm 1.4MB, và là PNG thô nên vi phạm
+// [R-2.1] chỉ dùng WebP/AVIF.
+if (existsSync(dest)) {
+  const keep = new Set(readdirSync(src));
+  for (const f of readdirSync(dest)) {
+    if (keep.has(f)) continue;
+    rmSync(join(dest, f), { recursive: true, force: true });
+    console.log(`[sync-media] xoá tệp lạ: ${f}`);
+  }
+} else {
+  mkdirSync(dest, { recursive: true });
 }
 
 cpSync(src, dest, { recursive: true });
