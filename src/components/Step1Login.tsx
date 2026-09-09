@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { AlertCircle, ChevronLeft, Eye, EyeOff, Loader2, Lock, Phone } from 'lucide-react';
 import { useAuth } from '../api/AuthContext';
-import { useContent, useImage, useStep } from '../api/BootstrapContext';
-import { ApiError } from '../api/client';
-import { RemoteImage } from './RemoteImage';
-import { SanLogo } from './SanLogo';
+import { useImage, useStep } from '../api/BootstrapContext';
+import { ApiError, assetUrl } from '../api/client';
 
 interface Step1LoginProps {
   phone: string;
@@ -17,16 +15,17 @@ interface Step1LoginProps {
 /**
  * Màn đăng nhập — dựng theo "2-man hinh 2 log on 1280 x 800".
  *
- * Tràn kín màn hình: nền xanh chuyển chéo từ góc trên phải xuống góc dưới trái,
- * logo và slogan ở góc trên trái, ảnh nhân viên dìu người cao tuổi chiếm nửa
- * trái và chạy hết mép dưới, thẻ trắng chứa form nằm bên phải canh giữa.
+ * Ảnh `login-bg` là nền TRỌN VẸN do thiết kế cung cấp: đã gồm nền xanh, hoạ tiết
+ * sóng, logo, slogan và hai nhân vật. Nên màn này chỉ có đúng hai lớp: ảnh nền
+ * tràn kín, và thẻ form trắng phủ lên nửa phải.
  *
- * Ảnh dùng mã `login-hero` (bản đã tách nền), `object-contain` neo đáy trái và
- * cờ `transparent` để thẻ <img> không bị tô màu chủ đạo lên phần lề.
+ * Ảnh đặt bằng `background-image` chứ không phải thẻ <img>: nền trang trí không
+ * mang thông tin, để nguyên thẻ <img> thì trình đọc màn hình phải bỏ qua bằng
+ * alt rỗng, mà vẫn tốn một node trong cây bố cục.
  *
- * Logo đặt tuyệt đối, thẻ form tự cuộn bên trong: trên màn ngang thấp như máy
- * ảo 1280x720, để chúng nằm trong luồng sẽ làm cả trang cuộn, logo trôi khỏi
- * khung nhìn còn dòng "Chưa có tài khoản" bị cắt mất.
+ * `background-position: left center` để trên màn 4:3 (máy tính bảng ngang) phần
+ * bị cắt rơi vào mép PHẢI — chỗ đó là nền trống và đằng nào cũng bị thẻ form che
+ * — chứ không cắt vào logo ở mép trái.
  *
  * [R-1.5] Trên SmartScreen phiên đến từ SSO của HomeHub — màn này chỉ là đường
  * lùi ở máy dev. Bản Store đặt ALLOW_DEV_LOGIN=false thì backend trả NO_PERMISSION.
@@ -37,13 +36,7 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
   onSubmit,
   onBack,
 }) => {
-  // Ưu tiên bản ĐÃ TÁCH NỀN. Chưa có trong DB thì tạm dùng ảnh dịch vụ có nền —
-  // thêm 'login-hero' vào tep_hinh_anh là màn này tự đổi, không phải sửa code.
-  // Gọi cả hai hook vô điều kiện: '??' sẽ làm hook thứ hai chạy lúc có lúc không.
-  const cutout = useImage('login-hero');
-  const fallback = useImage('dv-nguoi-gia');
-  const photo = cutout ?? fallback;
-  const hero = useContent('step0', 'step0.hero');
+  const background = useImage('login-bg');
   const step = useStep('step1');
   const { loginWithPhone, hasBridge } = useAuth();
 
@@ -84,36 +77,19 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
 
   return (
     <div
-      className="relative w-full h-screen overflow-hidden"
-      style={{
-        background:
-          'linear-gradient(to bottom left, var(--color-signin-light) 0%, var(--color-signin-mid) 50%, var(--color-signin-deep) 100%)',
-      }}
+      className="relative w-full h-screen overflow-hidden bg-signin-mid"
+      style={
+        background
+          ? {
+              backgroundImage: `url(${assetUrl(background.webp)})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'left center',
+              backgroundRepeat: 'no-repeat',
+            }
+          : undefined
+      }
     >
-      {/* Ảnh nửa trái, neo đáy. Ảnh đã tách nền nên dùng `object-contain` để
-          không cắt mất người, và `transparent` để không bị tô nền màu chủ đạo.
-          Màn hẹp ẩn đi để không đè lên form. */}
-      <div className="absolute bottom-0 left-0 w-[52%] h-[80%] hidden lg:block">
-        <RemoteImage
-          image={photo}
-          alt={photo?.alt ?? 'Nhân viên SAN dìu người cao tuổi'}
-          className="w-full h-full object-contain object-left-bottom"
-          priority
-          transparent
-        />
-      </div>
-
-      {/* Logo + slogan: đặt tuyệt đối để KHÔNG đẩy thẻ form xuống. Trước đây
-          nó nằm trong luồng, trên màn ngang thấp (1280x720 của máy ảo) thẻ form
-          bị đội xuống quá khung nhìn -> trang cuộn, logo trôi mất khỏi màn. */}
-      <div className="absolute top-0 left-0 z-20 flex items-center gap-3 flex-wrap px-4 sm:px-8 lg:px-12 pt-4 lg:pt-6">
-        <SanLogo size="lg" showSubtitle={false} />
-        <p className="text-[length:var(--fs-title)] font-bold italic text-crimson">
-          {hero?.title ?? 'Trẻ cậy cha, già cậy SAN'}
-        </p>
-      </div>
-
-      {/* Thẻ form, nửa phải, canh giữa theo chiều dọc.
+      {/* Thẻ form phủ lên nửa phải, canh giữa theo chiều dọc.
           Cao quá khung nhìn thì tự cuộn BÊN TRONG thẻ, không đẩy cả trang. */}
       <div className="app-wide relative z-10 h-full flex items-center justify-center lg:justify-end px-4 sm:px-8 lg:px-12">
         <div
@@ -162,7 +138,7 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
                 placeholder="Nhập số điện thoại"
                 required
                 disabled={submitting}
-                className="flex-1 min-w-0 bg-transparent text-base text-ink placeholder:text-slate-400 focus:outline-none disabled:opacity-60"
+                className="flex-1 min-w-0 bg-transparent text-[length:var(--fs-body)] text-ink placeholder:text-slate-400 focus:outline-none disabled:opacity-60"
               />,
             )}
 
@@ -181,7 +157,7 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
                 placeholder="Nhập mật khẩu"
                 required
                 disabled={submitting}
-                className="flex-1 min-w-0 bg-transparent text-base text-ink placeholder:text-slate-400 focus:outline-none disabled:opacity-60"
+                className="flex-1 min-w-0 bg-transparent text-[length:var(--fs-body)] text-ink placeholder:text-slate-400 focus:outline-none disabled:opacity-60"
               />,
               <button
                 type="button"
@@ -200,7 +176,7 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="w-5 h-5 rounded accent-cta-from cursor-pointer"
               />
-              <span className="text-sm text-ink">Ghi nhớ đăng nhập</span>
+              <span className="text-[length:var(--fs-body)] text-ink">Ghi nhớ đăng nhập</span>
             </label>
 
             {/* [R-4] Trạng thái lỗi hiển thị ngay tại form */}
@@ -232,14 +208,14 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
             <div className="text-center">
               <button
                 type="button"
-                className="text-sm font-semibold text-cta-from underline cursor-pointer"
+                className="text-[length:var(--fs-body)] font-semibold text-cta-from underline cursor-pointer"
               >
                 Quên mật khẩu?
               </button>
             </div>
           </form>
 
-          <div className="pt-3 border-t border-hairline text-center text-sm text-ink">
+          <div className="pt-3 border-t border-hairline text-center text-[length:var(--fs-body)] text-ink">
             Chưa có tài khoản?{' '}
             <button
               type="button"
