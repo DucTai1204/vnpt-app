@@ -26,8 +26,19 @@
   --color-sky-top: #dceefe;    /* nền gradient phía trên */
   --color-sky-bottom: #9fd4fb; /* nền gradient phía dưới */
   --color-crimson: #96161b;    /* "Trẻ cậy cha, già cậy SAN" */
-  --color-cta-from: #d90303;   /* nút Đăng nhập: đỏ -> cam */
+  --color-cta-from: #d90303;   /* nút đỏ -> cam (màn đăng nhập) */
   --color-cta-to: #fe650b;
+
+  /* Màn chào full màn hình — đọc dọc theo nền của "1-man hinh chao" */
+  --color-hero-1: #a8d8fd;
+  --color-hero-2: #d8e9fd;
+  --color-hero-3: #b5dcfd;
+  --color-hero-4: #63bbfc;
+  --color-login-from: #0055cc;  /* nút "Đăng nhập": xanh đậm dần */
+  --color-login-to: #002873;
+  --color-signup-from: #bee2fc; /* nút "Đăng ký": xanh nhạt */
+  --color-signup-to: #86d4fd;
+  --color-dot-red: #c32008;     /* chấm tròn trước mỗi dịch vụ */
 
   /* Đo từ 3-man hinh chon dv / 4-man hinh them dia chi / 5-man hinh chon ngay */
   --color-cta-blue: #0558b4;      /* nút "Lưu", "Chọn dịch vụ" */
