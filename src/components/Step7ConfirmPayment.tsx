@@ -13,7 +13,7 @@ import {
   User,
   X,
 } from 'lucide-react';
-import { useImage, useOptions, useStep } from '../api/BootstrapContext';
+import { useOptions, useStep } from '../api/BootstrapContext';
 import {
   ApiError,
   ApiQuote,
@@ -24,7 +24,6 @@ import {
 } from '../api/client';
 import { BookingState } from '../types';
 import { AppStatus } from './AppStatus';
-import { RemoteImage } from './RemoteImage';
 import { ScreenHeader } from './ScreenHeader';
 
 interface Step7Props {
@@ -47,7 +46,6 @@ export const Step7ConfirmPayment: React.FC<Step7Props> = ({
   onSubmitOrder,
   onBack,
 }) => {
-  const anhXacNhan = useImage('dv-nguoi-gia');
   const step = useStep('step7');
   const paymentOptions = useOptions('phuong_thuc_thanh_toan');
   const genderOptions = useOptions('gioi_tinh');
@@ -268,21 +266,6 @@ export const Step7ConfirmPayment: React.FC<Step7Props> = ({
                   </div>
                 )}
 
-                {/* Ảnh minh hoạ dịch vụ.
-                    Trước đây khung để `h-32` cứng (128px) trong khi thẻ rộng
-                    ~770px -> khung thành tỉ lệ 6:1, còn ảnh là 16:9. `object-cover`
-                    phóng ảnh cho phủ kín rồi cắt hơn 300px chiều dọc, mất luôn
-                    đầu người. Giờ khung mang đúng tỉ lệ ảnh nên không cắt gì,
-                    và chặn bề ngang để không chiếm hết màn. */}
-                <div className="pt-2 border-t border-stone-200">
-                  <div className="mx-auto w-full max-w-md aspect-video rounded-xl overflow-hidden">
-                    <RemoteImage
-                      image={anhXacNhan}
-                      alt="Xác nhận dịch vụ chăm sóc SAN"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
               </div>
             </div>
           </div>
