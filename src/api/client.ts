@@ -251,6 +251,27 @@ export interface ApiBookingDetail {
   createdAt: string;
   sessions: (ApiQuoteSession & { id: number; status: string; caregiverName: string | null })[];
   diseases: { code: string; name: string; note: string | null }[];
+  /** Mốc đổi trạng thái, cũ -> mới, dùng dựng timeline ở màn Đơn dịch vụ. */
+  statusHistory: { fromStatus: string | null; toStatus: string; createdAt: string }[];
+}
+
+/** Một dòng trong danh sách đơn — nguồn: view `v_danh_sach_don`. */
+export interface ApiBookingSummary {
+  id: number;
+  code: string;
+  serviceTitle: string;
+  packageLabel: string;
+  packageCategory: 'theo_ngay' | 'theo_thang';
+  durationHours: number;
+  sessionCount: number;
+  firstServiceDate: string | null;
+  startTime: string;
+  totalAmount: number;
+  status: string;
+  paymentStatus: string;
+  entrySource: string;
+  bookerPhoneMasked: string;
+  createdAt: string;
 }
 
 /** Tham số chung của /bookings/quote và POST /bookings. */
@@ -527,5 +548,13 @@ export const getVouchers = (
 
 export const createBooking = (payload: CreateBookingInput, signal?: AbortSignal) =>
   request<ApiBookingDetail>('/bookings', { method: 'POST', body: payload, signal });
+
+/** Đơn của chính người đang đăng nhập, mới nhất trước. */
+export const getBookings = (signal?: AbortSignal) =>
+  request<ApiBookingSummary[]>('/bookings', { signal });
+
+/** Chi tiết một đơn, kèm `statusHistory` để dựng timeline. */
+export const getBooking = (code: string, signal?: AbortSignal) =>
+  request<ApiBookingDetail>(`/bookings/${encodeURIComponent(code)}`, { signal });
 
 export { request as apiRequest };

@@ -4,6 +4,7 @@ import { SanLogo } from './SanLogo';
 import { RemoteImage } from './RemoteImage';
 import { ApiError, ApiService, getServices } from '../api/client';
 import { useBootstrap, useSetting, useStep } from '../api/BootstrapContext';
+import { BookingList } from './BookingList';
 import { LogoutButton } from './LogoutButton';
 import { useAuth } from '../api/AuthContext';
 
@@ -166,12 +167,10 @@ export const Step2HomeServices: React.FC<Step2HomeServicesProps> = ({
         </div>
       )}
 
-      {/* Tab Đơn dịch vụ — chưa nối API danh sách đơn */}
+      {/* Tab Đơn dịch vụ — danh sách đơn thật + timeline trạng thái */}
       {activeTab === 'don_hang' && (
-        <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-10 mb-8 text-center">
-          <ClipboardList className="w-8 h-8 text-stone-400 mx-auto mb-3" />
-          <p className="text-sm font-bold text-[#0B2E6B] mb-1">Đơn dịch vụ</p>
-          <p className="text-xs text-stone-500">Màn hình này chưa được nối với API danh sách đơn.</p>
+        <div className="mb-8">
+          <BookingList />
         </div>
       )}
 
