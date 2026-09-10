@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { BackgroundDecoration } from './components/BackgroundDecoration';
-import { Step0Welcome } from './components/Step0Welcome';
 import { Step1Login } from './components/Step1Login';
 import { Step2HomeServices } from './components/Step2HomeServices';
 import { Step3UpdateAddress } from './components/Step3UpdateAddress';
@@ -71,7 +70,8 @@ export default function App() {
       // (đổi địa chỉ, chọn gói, chọn ngày...) phải thắng giá trị mặc định.
       ...restored,
 
-      // Có đơn dở thì về đúng bước đó, không thì vào màn chọn dịch vụ
+      // Có đơn dở thì về đúng bước đó, không thì vào màn chọn dịch vụ.
+      // Vẫn loại 'step0' vì đơn nháp lưu từ bản cũ có thể còn giá trị đó.
       currentStep:
         restoredStep && restoredStep !== 'step0' && restoredStep !== 'step1'
           ? restoredStep
@@ -132,7 +132,7 @@ export default function App() {
     setBooking((prev) => {
       const history = [...prev.previousStepHistory];
       if (history.length === 0) {
-        return { ...prev, currentStep: auth.status === 'authenticated' ? 'step2' : 'step0' };
+        return { ...prev, currentStep: auth.status === 'authenticated' ? 'step2' : 'step1' };
       }
       const lastStep = history.pop()!;
       return { ...prev, previousStepHistory: history, currentStep: lastStep };
@@ -221,8 +221,8 @@ export default function App() {
       handleGoHome();
       return true;
     }
-    // Ở màn chào là hết đường lùi -> để native thoát app
-    if (booking.currentStep === 'step0') return false;
+    // Màn đăng nhập là màn đầu -> hết đường lùi, để native thoát app
+    if (booking.currentStep === 'step1') return false;
     // Đã đăng nhập thì step2 là "trang chủ", lùi tiếp nữa là thoát
     if (booking.currentStep === 'step2' && booking.previousStepHistory.length === 0) return false;
 
@@ -253,11 +253,6 @@ export default function App() {
       {/* Bộ thiết kế không có thanh tiến trình: mỗi màn tự dựng ScreenHeader
           (nút back tròn + tiêu đề + pill hotline) ngay trong khung nội dung. */}
       <main className="relative z-10 flex-1 flex flex-col justify-center">
-        {/* BƯỚC 0 – Welcome */}
-        {booking.currentStep === 'step0' && (
-          <Step0Welcome onLogin={() => goToStep('step1')} onRegister={() => goToStep('step1')} />
-        )}
-
         {/* BƯỚC 1 – Login */}
         {booking.currentStep === 'step1' && (
           <Step1Login

@@ -83,7 +83,7 @@ export interface BookingState {
  * `/auth/me` + `/bootstrap` điền vào, nên không có dữ liệu giả nào ở đây.
  */
 export const EMPTY_BOOKING_STATE: BookingState = {
-  currentStep: 'step0',
+  currentStep: 'step1',
   previousStepHistory: [],
 
   bookerName: '',
