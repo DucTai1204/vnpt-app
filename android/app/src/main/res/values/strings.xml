@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">SAN - Chăm sóc sức khỏe</string>
-    <string name="title_activity_main">SAN - Chăm sóc sức khỏe</string>
+    <string name="app_name">SAN Chăm sóc người già</string>
+    <string name="title_activity_main">SAN Chăm sóc người già</string>
     <string name="package_name">vn.vnpt.san.miniapp</string>
     <string name="custom_url_scheme">vn.vnpt.san.miniapp</string>
 </resources>

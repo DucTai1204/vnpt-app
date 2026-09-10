@@ -21,7 +21,7 @@ const allowCleartext = process.env.CAP_CLEARTEXT === 'true';
 
 const config: CapacitorConfig = {
   appId: 'vn.vnpt.san.miniapp',
-  appName: 'SAN - Chăm sóc sức khỏe',
+  appName: 'SAN Chăm sóc người già',
   webDir: 'dist',
 
   android: {
