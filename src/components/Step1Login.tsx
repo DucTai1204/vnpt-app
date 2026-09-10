@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AlertCircle, ChevronLeft, Eye, EyeOff, Loader2, Lock, Phone } from 'lucide-react';
 import { useAuth } from '../api/AuthContext';
-import { useImage, useStep } from '../api/BootstrapContext';
+import { useImage, useSetting, useStep } from '../api/BootstrapContext';
 import { ApiError, assetUrl } from '../api/client';
 
 interface Step1LoginProps {
@@ -9,7 +9,8 @@ interface Step1LoginProps {
   onPhoneChange: (phone: string) => void;
   /** Gọi sau khi backend cấp phiên thành công. */
   onSubmit: () => void;
-  onBack: () => void;
+  /** Bỏ trống khi đây là màn đầu tiên -> ẩn luôn nút quay lại. */
+  onBack?: () => void;
 }
 
 /**
@@ -38,6 +39,7 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
 }) => {
   const background = useImage('login-bg');
   const step = useStep('step1');
+  const hotline = useSetting('app.hotline', '');
   const { loginWithPhone, hasBridge } = useAuth();
 
   const [password, setPassword] = useState('');
@@ -96,14 +98,16 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
           className="w-full max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl"
           style={{ padding: 'var(--pad-card)', display: 'grid', gap: 'var(--sp-block)' }}
         >
-          <button
-            type="button"
-            onClick={onBack}
-            aria-label="Quay lại"
-            className="w-10 h-10 rounded-full bg-white border border-hairline text-navy flex items-center justify-center hover:bg-brand-surface transition-colors cursor-pointer"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              aria-label="Quay lại"
+              className="w-10 h-10 rounded-full bg-white border border-hairline text-navy flex items-center justify-center hover:bg-brand-surface transition-colors cursor-pointer"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          )}
 
           <div>
             <h1 className="text-[length:var(--fs-title)] font-extrabold text-navy leading-tight">
@@ -215,15 +219,17 @@ export const Step1Login: React.FC<Step1LoginProps> = ({
             </div>
           </form>
 
+          {/* Chưa làm chức năng đăng ký. Chỉ dẫn người dùng gọi tổng đài thay vì
+              để một nút bấm vào không có gì xảy ra. */}
           <div className="pt-3 border-t border-hairline text-center text-[length:var(--fs-body)] text-ink">
             Chưa có tài khoản?{' '}
-            <button
-              type="button"
-              onClick={onBack}
-              className="font-bold text-cta-from underline cursor-pointer"
-            >
-              Đăng ký ngay
-            </button>
+            {hotline ? (
+              <a href={`tel:${hotline}`} className="font-bold text-cta-from underline">
+                Gọi {hotline}
+              </a>
+            ) : (
+              <span className="font-bold text-muted">Liên hệ tổng đài SAN</span>
+            )}
           </div>
         </div>
       </div>

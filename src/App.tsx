@@ -253,13 +253,13 @@ export default function App() {
       {/* Bộ thiết kế không có thanh tiến trình: mỗi màn tự dựng ScreenHeader
           (nút back tròn + tiêu đề + pill hotline) ngay trong khung nội dung. */}
       <main className="relative z-10 flex-1 flex flex-col justify-center">
-        {/* BƯỚC 1 – Login */}
+        {/* BƯỚC 1 – Login. Là màn đầu tiên nên KHÔNG truyền onBack: có truyền thì
+            nút quay lại hiện ra nhưng bấm vào không đi đâu được. */}
         {booking.currentStep === 'step1' && (
           <Step1Login
             phone={booking.bookerPhone}
             onPhoneChange={(phone) => setBooking((prev) => ({ ...prev, bookerPhone: phone }))}
             onSubmit={() => goToStep('step2')}
-            onBack={handleBack}
           />
         )}
 
