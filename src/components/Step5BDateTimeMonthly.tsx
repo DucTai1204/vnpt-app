@@ -74,7 +74,7 @@ export const Step5BDateTimeMonthly: React.FC<Step5BProps> = ({
   onBack,
 }) => {
   const step = useStep('step5b');
-  const leadHours = useSetting('dat_lich.so_gio_dat_truoc', 4);
+  const leadHours = useSetting('dat_lich.so_gio_dat_truoc', 2);
   const maxMonths = useSetting('dat_lich.so_thang_toi_da', 3);
 
   const [hourPackages, setHourPackages] = useState<ApiPackage[] | null>(null);

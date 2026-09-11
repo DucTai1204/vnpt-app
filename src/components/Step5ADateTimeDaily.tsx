@@ -48,7 +48,7 @@ export const Step5ADateTimeDaily: React.FC<Step5AProps> = ({
   onBack,
 }) => {
   const step = useStep('step5a');
-  const leadHours = useSetting('dat_lich.so_gio_dat_truoc', 4);
+  const leadHours = useSetting('dat_lich.so_gio_dat_truoc', 2);
   const maxMonths = useSetting('dat_lich.so_thang_toi_da', 3);
 
   const [packages, setPackages] = useState<ApiPackage[] | null>(null);
