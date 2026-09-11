@@ -33,6 +33,24 @@ const config: CapacitorConfig = {
   server: {
     cleartext: allowCleartext,
   },
+
+  plugins: {
+    SplashScreen: {
+      /**
+       * KHÔNG cho splash tự tắt.
+       *
+       * Mặc định Capacitor tắt splash sau vài giây, mà lúc đó app còn đang gọi
+       * API nên người dùng thấy: splash -> màn trắng -> vòng xoay "Đang tải".
+       * Để `false` rồi tự tắt trong `useNativeShell` khi dữ liệu đã về, người
+       * dùng chỉ thấy splash liền một mạch tới lúc giao diện hiện ra.
+       */
+      launchAutoHide: false,
+      backgroundColor: '#ffffff',
+      showSpinner: false,
+      // Mờ dần cho đỡ giật khi chuyển sang giao diện
+      fadeOutDuration: 200,
+    },
+  },
 };
 
 export default config;

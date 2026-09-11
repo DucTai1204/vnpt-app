@@ -230,7 +230,12 @@ export default function App() {
     return true;
   }, [order, booking.currentStep, booking.previousStepHistory.length]);
 
-  useNativeShell({ onBack: handleHardwareBack });
+  // Cấu hình đã về VÀ đã biết còn phiên hay không. Lỗi cũng tính là xong: phải
+  // nhường màn hình cho app để người dùng thấy thông báo và nút thử lại.
+  const bootDone = (!bootstrap.loading || Boolean(bootstrap.error)) && auth.status !== 'checking';
+
+  // Trên APK, splash native che suốt quãng này nên không ai thấy màn "Đang tải"
+  useNativeShell({ onBack: handleHardwareBack, ready: bootDone });
 
   // [R-4] Loading / No Internet / Error cho cấu hình dùng chung
   if (bootstrap.loading || auth.status === 'checking') {

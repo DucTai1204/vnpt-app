@@ -15,6 +15,14 @@ import { useEffect } from 'react';
 export interface NativeShellOptions {
   /** Quay lại bước trước. Trả về false nếu đang ở màn đầu (thoát app). */
   onBack: () => boolean;
+  /**
+   * Dữ liệu khởi động đã về chưa. Splash chỉ tắt khi cờ này bật.
+   *
+   * `launchAutoHide: false` trong capacitor.config.ts nên splash KHÔNG tự tắt;
+   * nếu quên tắt ở đây thì app đứng ở splash vĩnh viễn. Vì vậy bên dưới còn một
+   * mốc chặn cứng, hết giờ là tắt dù dữ liệu chưa về.
+   */
+  ready: boolean;
 }
 
 /** Chỉ true khi đang chạy trong APK/IPA, không phải trình duyệt. */
@@ -23,7 +31,7 @@ export const isNativeApp = (): boolean => {
   return typeof cap?.isNativePlatform === 'function' && cap.isNativePlatform();
 };
 
-export function useNativeShell({ onBack }: NativeShellOptions): void {
+export function useNativeShell({ onBack, ready }: NativeShellOptions): void {
   useEffect(() => {
     if (!isNativeApp()) return;
 
@@ -56,13 +64,6 @@ export function useNativeShell({ onBack }: NativeShellOptions): void {
         // Máy không có status bar (TV box) -> bỏ qua, không được làm hỏng app
       }
 
-      // Giao diện đã sẵn sàng -> tắt splash
-      try {
-        const { SplashScreen } = await import('@capacitor/splash-screen');
-        await SplashScreen.hide();
-      } catch {
-        // Splash có thể đã tự tắt
-      }
     })();
 
     // [R-2.5] Cleanup bắt buộc: gỡ listener khi unmount
@@ -71,4 +72,32 @@ export function useNativeShell({ onBack }: NativeShellOptions): void {
       for (const fn of cleanups) fn();
     };
   }, [onBack]);
+
+  /**
+   * Tắt splash khi giao diện thật đã sẵn sàng.
+   *
+   * Mốc chặn cứng 8 giây: mạng hỏng hay API treo thì vẫn phải nhường màn hình
+   * cho app, để người dùng còn thấy được thông báo lỗi và nút thử lại.
+   */
+  useEffect(() => {
+    if (!isNativeApp()) return;
+
+    let done = false;
+    const hide = async () => {
+      if (done) return;
+      done = true;
+      try {
+        const { SplashScreen } = await import('@capacitor/splash-screen');
+        await SplashScreen.hide();
+      } catch {
+        // Splash có thể đã tắt sẵn
+      }
+    };
+
+    const timer = setTimeout(() => void hide(), 8000);
+    if (ready) void hide();
+
+    // [R-2.5] Cleanup bắt buộc
+    return () => clearTimeout(timer);
+  }, [ready]);
 }
