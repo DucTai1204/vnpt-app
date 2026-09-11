@@ -27,7 +27,7 @@ interface Step5AProps {
 
 /** 3 thẻ "Tùy chọn" trong thiết kế — hiện là mục thông tin, chưa nối API. */
 const OPTION_CARDS = [
-  { key: 'yeu_thich', Icon: Heart, tone: 'text-pink-500', label: 'Ưu tiên nhân viên\nyêu thích', badge: 'San Now' },
+  { key: 'yeu_thich', Icon: Heart, tone: 'text-pink-500', label: 'Ưu tiên nhân viên\nyêu thích', badge: null },
   { key: 'se_lam', Icon: CheckCircle2, tone: 'text-emerald-500', label: 'Việc Có SAN\nsẽ làm', badge: null },
   { key: 'khong_lam', Icon: XCircle, tone: 'text-accent', label: 'Việc Có SAN\nkhông làm', badge: null },
 ];
