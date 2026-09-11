@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { BackgroundDecoration } from './components/BackgroundDecoration';
+import { Step0Welcome } from './components/Step0Welcome';
 import { Step1Login } from './components/Step1Login';
 import { Step2HomeServices } from './components/Step2HomeServices';
 import { Step3UpdateAddress } from './components/Step3UpdateAddress';
@@ -18,12 +19,64 @@ import { ApiBookingDetail, createBooking, deleteDraft, saveDraft } from './api/c
 import { BookingState, DurationOption, EMPTY_BOOKING_STATE, StepId } from './types';
 import { useNativeShell } from './native/useNativeShell';
 
+/**
+ * Bao lâu thì rời màn chào. Màn này chỉ để giới thiệu, không có nút bấm.
+ */
+const INTRO_MS = 1800;
+
+/**
+ * TẠM THỜI: tự đăng nhập bằng tài khoản test để khỏi gõ tay khi dev.
+ *
+ * XOÁ TRƯỚC KHI NỘP STORE. Trên SmartScreen phiên đến từ SSO của HomeHub, và
+ * backend production đặt ALLOW_DEV_LOGIN=false nên gọi vào sẽ nhận NO_PERMISSION
+ * — lúc đó app đứng lại ở màn chào cho tới khi hết INTRO_MS rồi vào màn đăng nhập.
+ */
+const AUTO_LOGIN_PHONE = '0900000001';
+
 export default function App() {
   const bootstrap = useBootstrap();
   const auth = useAuth();
 
   const [booking, setBooking] = useState<BookingState>(EMPTY_BOOKING_STATE);
   const [order, setOrder] = useState<ApiBookingDetail | null>(null);
+
+  /** Hết giờ giới thiệu chưa. Màn chào giữ nguyên cho tới khi cờ này bật. */
+  const [introDone, setIntroDone] = useState(false);
+  const autoLoginTried = useRef(false);
+
+  // Cấu hình đã về VÀ đã biết còn phiên hay không. Lỗi cũng tính là xong: phải
+  // nhường màn hình cho app để người dùng thấy thông báo và nút thử lại.
+  const bootDone = (!bootstrap.loading || Boolean(bootstrap.error)) && auth.status !== 'checking';
+
+  /**
+   * Đếm giờ từ lúc màn chào THẬT SỰ hiện, không phải từ lúc component gắn vào.
+   * Đếm từ khi gắn thì phần lớn 1.8 giây bị nuốt vào lúc chờ API, người dùng
+   * chỉ kịp thấy màn chào loé lên rồi biến mất.
+   */
+  useEffect(() => {
+    if (!bootDone) return;
+    const timer = setTimeout(() => setIntroDone(true), INTRO_MS);
+    // [R-2.5] Cleanup bắt buộc
+    return () => clearTimeout(timer);
+  }, [bootDone]);
+
+  /**
+   * TẠM THỜI: tự đăng nhập tài khoản test ngay trong lúc màn chào đang hiện.
+   * Nhờ chạy song song nên không tốn thêm thời gian chờ.
+   */
+  useEffect(() => {
+    if (!AUTO_LOGIN_PHONE || auth.status !== 'anonymous' || autoLoginTried.current) return;
+    autoLoginTried.current = true;
+    void auth.loginWithPhone(AUTO_LOGIN_PHONE).catch(() => {
+      // Backend tắt dev-login hoặc không có tài khoản -> rơi về đăng nhập tay
+    });
+  }, [auth.status, auth.loginWithPhone]);
+
+  /** Hết giờ giới thiệu mà vẫn chưa vào được -> cho đăng nhập tay. */
+  useEffect(() => {
+    if (!introDone || auth.status !== 'anonymous') return;
+    setBooking((prev) => (prev.currentStep === 'step0' ? { ...prev, currentStep: 'step1' } : prev));
+  }, [introDone, auth.status]);
 
   /**
    * Nạp hồ sơ + địa chỉ + người được chăm mặc định từ /auth/me.
@@ -70,17 +123,19 @@ export default function App() {
       // (đổi địa chỉ, chọn gói, chọn ngày...) phải thắng giá trị mặc định.
       ...restored,
 
+      // Đăng nhập xong sớm cũng phải chờ hết màn chào rồi mới chuyển.
       // Có đơn dở thì về đúng bước đó, không thì vào màn chọn dịch vụ.
-      // Vẫn loại 'step0' vì đơn nháp lưu từ bản cũ có thể còn giá trị đó.
       currentStep:
-        restoredStep && restoredStep !== 'step0' && restoredStep !== 'step1'
-          ? restoredStep
-          : prev.currentStep === 'step0' || prev.currentStep === 'step1'
-            ? 'step2'
-            : prev.currentStep,
+        !introDone && prev.currentStep === 'step0'
+          ? 'step0'
+          : restoredStep && restoredStep !== 'step0' && restoredStep !== 'step1'
+            ? restoredStep
+            : prev.currentStep === 'step0' || prev.currentStep === 'step1'
+              ? 'step2'
+              : prev.currentStep,
       previousStepHistory: [],
     }));
-  }, [auth.status, auth.me]);
+  }, [auth.status, auth.me, introDone]);
 
   /**
    * Lưu tiến trình lên server mỗi khi state đổi (hoãn 600ms để không spam API).
@@ -221,18 +276,14 @@ export default function App() {
       handleGoHome();
       return true;
     }
-    // Màn đăng nhập là màn đầu -> hết đường lùi, để native thoát app
-    if (booking.currentStep === 'step1') return false;
+    // Màn chào và màn đăng nhập là đầu luồng -> hết đường lùi, để native thoát
+    if (booking.currentStep === 'step0' || booking.currentStep === 'step1') return false;
     // Đã đăng nhập thì step2 là "trang chủ", lùi tiếp nữa là thoát
     if (booking.currentStep === 'step2' && booking.previousStepHistory.length === 0) return false;
 
     handleBack();
     return true;
   }, [order, booking.currentStep, booking.previousStepHistory.length]);
-
-  // Cấu hình đã về VÀ đã biết còn phiên hay không. Lỗi cũng tính là xong: phải
-  // nhường màn hình cho app để người dùng thấy thông báo và nút thử lại.
-  const bootDone = (!bootstrap.loading || Boolean(bootstrap.error)) && auth.status !== 'checking';
 
   // Trên APK, splash native che suốt quãng này nên không ai thấy màn "Đang tải"
   useNativeShell({ onBack: handleHardwareBack, ready: bootDone });
@@ -258,8 +309,11 @@ export default function App() {
       {/* Bộ thiết kế không có thanh tiến trình: mỗi màn tự dựng ScreenHeader
           (nút back tròn + tiêu đề + pill hotline) ngay trong khung nội dung. */}
       <main className="relative z-10 flex-1 flex flex-col justify-center">
-        {/* BƯỚC 1 – Login. Là màn đầu tiên nên KHÔNG truyền onBack: có truyền thì
-            nút quay lại hiện ra nhưng bấm vào không đi đâu được. */}
+        {/* BƯỚC 0 – Màn chào. Không có nút, app tự chuyển sau INTRO_MS. */}
+        {booking.currentStep === 'step0' && <Step0Welcome />}
+
+        {/* BƯỚC 1 – Login. Là màn đầu của luồng thao tác nên KHÔNG truyền onBack:
+            có truyền thì nút quay lại hiện ra nhưng bấm vào không đi đâu được. */}
         {booking.currentStep === 'step1' && (
           <Step1Login
             phone={booking.bookerPhone}
