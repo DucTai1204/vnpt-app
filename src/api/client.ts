@@ -9,6 +9,8 @@
  * localStorage/sessionStorage. Mất token (reload) thì xin lại bằng SSO.
  */
 
+import { pushLog } from '../debug/logStore';
+
 /* ------------------------------------------------------------------ */
 /* Kiểu dữ liệu                                                        */
 /* ------------------------------------------------------------------ */
@@ -420,6 +422,7 @@ async function requestEnvelope<T>(
   opts: RequestOptions = {},
 ): Promise<Envelope<T>> {
   const { method = 'GET', body, signal, anonymous = false } = opts;
+  const startedAt = Date.now();
 
   const headers: Record<string, string> = { Accept: 'application/json', ...NGROK_HEADER };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
@@ -438,6 +441,7 @@ async function requestEnvelope<T>(
   } catch (err) {
     // fetch chỉ reject khi mất mạng / bị CSP chặn — phân biệt với lỗi HTTP
     if ((err as Error)?.name === 'AbortError') throw err;
+    pushLog('api', `${method} ${path} — MẤT KẾT NỐI`);
     throw new ApiError('NO_INTERNET', 'Không có kết nối tới máy chủ');
   }
 
@@ -456,12 +460,15 @@ async function requestEnvelope<T>(
       sessionToken = null;
       for (const fn of expiredListeners) fn();
     }
+    pushLog('api', `${method} ${path} ${res.status} ${code} (${Date.now() - startedAt}ms)`,
+      envelope.error?.message ?? '');
     throw new ApiError(
       code,
       envelope.error?.message ?? `Lỗi máy chủ (HTTP ${res.status})`,
       envelope.error?.details,
     );
   }
+  pushLog('api', `${method} ${path} ${res.status} (${Date.now() - startedAt}ms)`);
   return envelope;
 }
 

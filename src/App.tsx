@@ -11,6 +11,7 @@ import { Step6HealthInfo } from './components/Step6HealthInfo';
 import { Step7ConfirmPayment } from './components/Step7ConfirmPayment';
 import { SuccessModal } from './components/SuccessModal';
 import { AppStatus } from './components/AppStatus';
+import { DebugPanel } from './debug/DebugPanel';
 
 import { useAuth } from './api/AuthContext';
 import { useBootstrap } from './api/BootstrapContext';
@@ -32,6 +33,14 @@ const INTRO_MS = 1800;
  * — lúc đó app đứng lại ở màn chào cho tới khi hết INTRO_MS rồi vào màn đăng nhập.
  */
 const AUTO_LOGIN_PHONE = '0900000001';
+
+/**
+ * TẠM THỜI: nút Debug nổi trên mọi màn, bấm vào xem log và các lệnh gọi API.
+ *
+ * Có vì máy ảo và TV box không mở được DevTools. ĐỔI VỀ false TRƯỚC KHI NỘP
+ * STORE — log có thể lộ đường dẫn API và nội dung lỗi ra người dùng cuối.
+ */
+const SHOW_DEBUG = true;
 
 export default function App() {
   const bootstrap = useBootstrap();
@@ -453,6 +462,8 @@ export default function App() {
       </main>
 
       {order && <SuccessModal order={order} onGoHome={handleGoHome} />}
+
+      {SHOW_DEBUG && <DebugPanel />}
     </div>
   );
 }
