@@ -163,11 +163,47 @@ export const Step5BDateTimeMonthly: React.FC<Step5BProps> = ({
 
   const slots = useMemo(() => (slotGroups ?? []).flatMap((g) => g.slots), [slotGroups]);
 
+  /** yyyy-mm-dd của hôm nay theo giờ máy — cùng cách tính với `toIso` trong MonthCalendar. */
+  const todayIso = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }, []);
+
+  /**
+   * [R] Một khung giờ áp dụng cho MỌI ngày đã chọn của gói tháng. Chỉ cần kiểm
+   * so với HÔM NAY: nếu hôm nay nằm trong danh sách ngày đã chọn thì buổi hôm
+   * nay phải còn cách hiện tại ít nhất `leadHours`; các ngày tương lai khác
+   * không bao giờ bị chặn bởi mốc này nên không cần xét.
+   */
+  const isSlotTooSoon = (value: string) => {
+    if (!selectedDates.includes(todayIso)) return false;
+    const [h, m] = value.split(':').map(Number);
+    const when = new Date(`${todayIso}T00:00:00`);
+    when.setHours(h, m, 0, 0);
+    return when < earliest;
+  };
+
+  /** Ẩn hẳn khung giờ quá gần thay vì hiện mờ. */
+  const visibleSlots = useMemo(
+    () => slots.filter((s) => !isSlotTooSoon(s.value)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [slots, selectedDates, earliest, todayIso],
+  );
+
+  // Giờ đề xuất do backend đánh dấu (la_mac_dinh) — chỉ tự chọn khi nó THẬT SỰ
+  // còn đặt được; không thì để trống buộc khách tự chọn, không đoán thay.
   useEffect(() => {
-    if (startTime || !slots.length) return;
-    const def = slots.find((s) => s.isDefault) ?? slots[0];
+    if (startTime || !visibleSlots.length) return;
+    const def = visibleSlots.find((s) => s.isDefault) ?? null;
     if (def) onUpdateStartTime(def.value);
-  }, [slots, startTime, onUpdateStartTime]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibleSlots, startTime, onUpdateStartTime]);
+
+  // Thêm HÔM NAY vào ngày đã chọn mà giờ đang chọn thành quá gần -> bỏ chọn
+  useEffect(() => {
+    if (startTime && isSlotTooSoon(startTime)) onUpdateStartTime('');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDates, earliest]);
 
   const minSessions = currentPlan?.minSessions ?? 0;
   const enough = selectedDates.length >= minSessions && selectedDates.length > 0;
@@ -328,9 +364,16 @@ export const Step5BDateTimeMonthly: React.FC<Step5BProps> = ({
                     <div key={i} className="h-11 rounded-xl bg-canvas animate-pulse" />
                   ))}
                 </div>
+              ) : visibleSlots.length === 0 ? (
+                // Chỉ rơi vào đây khi HÔM NAY nằm trong ngày đã chọn và đã qua
+                // hết khung giờ còn nhận trong ngày.
+                <p className="text-sm text-muted bg-canvas rounded-xl px-4 py-3">
+                  Đã hết khung giờ còn nhận cho hôm nay. Vui lòng bỏ hôm nay khỏi lịch hoặc chọn thêm
+                  ngày khác ở mục &quot;Chọn ngày làm việc&quot;.
+                </p>
               ) : (
                 <div className="grid grid-cols-4 gap-3">
-                  {slots.map((slot) => {
+                  {visibleSlots.map((slot) => {
                     const isSelected = startTime === slot.value;
                     return (
                       <button

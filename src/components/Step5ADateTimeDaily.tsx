@@ -112,33 +112,47 @@ export const Step5ADateTimeDaily: React.FC<Step5AProps> = ({
     return d;
   }, [maxMonths]);
 
-  /** Khung giờ phẳng 4 cột như thiết kế; giờ quá gần hiện mờ và không bấm được. */
+  /** Khung giờ phẳng 4 cột như thiết kế. */
   const slots = useMemo(
     () => (slotGroups ?? []).flatMap((g) => g.slots),
     [slotGroups],
   );
 
+  /** yyyy-mm-dd của hôm nay theo giờ máy — cùng cách tính với `toIso` trong MonthCalendar. */
+  const todayIso = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }, []);
+
+  /**
+   * Chưa chọn ngày thì coi như đang hỏi cho HÔM NAY — khách vào màn này gần như
+   * luôn định làm trong ngày, nên khung giờ quá gần phải biến mất ngay từ đầu
+   * chứ không đợi bấm chọn ngày trước.
+   */
   const isSlotTooSoon = (value: string) => {
-    if (!selectedDate) return false;
+    const refDate = selectedDate || todayIso;
     const [h, m] = value.split(':').map(Number);
-    const when = new Date(`${selectedDate}T00:00:00`);
+    const when = new Date(`${refDate}T00:00:00`);
     when.setHours(h, m, 0, 0);
     return when < earliest;
   };
 
-  // Giờ mặc định: khung đầu tiên còn đặt được
-  useEffect(() => {
-    if (startTime || !slots.length || !selectedDate) return;
-    const usable = slots.find((s) => !isSlotTooSoon(s.value));
-    if (usable) onUpdateStartTime(usable.value);
+  /**
+   * [R] Ẩn hẳn khung giờ quá gần thay vì hiện mờ — khách không cần biết những
+   * khung giờ mình chắc chắn không bấm được vẫn tồn tại.
+   */
+  const visibleSlots = useMemo(
+    () => slots.filter((s) => !isSlotTooSoon(s.value)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slots, startTime, selectedDate]);
+    [slots, selectedDate, earliest],
+  );
 
-  // Đổi ngày mà giờ đang chọn thành quá gần -> bỏ chọn để buộc chọn lại
+  // Đổi ngày mà giờ đang chọn thành quá gần -> bỏ chọn để buộc chọn lại.
+  // KHÔNG tự chọn thay khách một khung khác — để trống buộc khách chọn lại.
   useEffect(() => {
     if (startTime && isSlotTooSoon(startTime)) onUpdateStartTime('');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
+  }, [selectedDate, earliest]);
 
   if (error) {
     return (
@@ -261,24 +275,28 @@ export const Step5ADateTimeDaily: React.FC<Step5AProps> = ({
                   <div key={i} className="h-11 rounded-xl bg-canvas animate-pulse" />
                 ))}
               </div>
+            ) : visibleSlots.length === 0 ? (
+              // Hết sạch khung giờ còn đặt được trong ngày đang chọn (kể cả khi
+              // chưa chọn ngày, tính theo hôm nay) — hướng khách sang ngày khác
+              // thay vì để trống lưới không rõ vì sao.
+              <p className="text-sm text-muted bg-canvas rounded-xl px-4 py-3">
+                Đã hết khung giờ còn nhận trong ngày{selectedDate ? ' này' : ' hôm nay'}. Vui lòng chọn
+                ngày khác ở mục 1.
+              </p>
             ) : (
               <div className="grid grid-cols-4 gap-3">
-                {slots.map((slot) => {
+                {visibleSlots.map((slot) => {
                   const isSelected = startTime === slot.value;
-                  const tooSoon = isSlotTooSoon(slot.value);
                   return (
                     <button
                       key={slot.value}
                       type="button"
-                      disabled={tooSoon}
                       aria-pressed={isSelected}
                       onClick={() => onUpdateStartTime(slot.value)}
-                      className={`h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 border transition-colors ${
+                      className={`h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 border transition-colors cursor-pointer ${
                         isSelected
-                          ? 'bg-brand border-brand text-white cursor-pointer'
-                          : tooSoon
-                            ? 'bg-white border-hairline text-slate-300 cursor-not-allowed'
-                            : 'bg-white border-hairline text-navy hover:border-brand-border cursor-pointer'
+                          ? 'bg-brand border-brand text-white'
+                          : 'bg-white border-hairline text-navy hover:border-brand-border'
                       }`}
                     >
                       {isSelected && <Check className="w-4 h-4" />}

@@ -11,6 +11,24 @@
 
 import { pushLog } from '../debug/logStore';
 
+/**
+ * Đường dẫn dùng RIÊNG cho việc ghi log — bỏ hết GIÁ TRỊ query string, chỉ giữ
+ * lại TÊN tham số.
+ *
+ * Lý do: `GET /bookings?q=<khách tự gõ>` có thể là số điện thoại hay tên khách
+ * khi nhân viên tìm đơn; `POST /addresses` hay các endpoint khác không đưa body
+ * vào log nên an toàn, nhưng riêng query string thì có (ví dụ ô tìm kiếm ở màn
+ * Đơn dịch vụ). Bảng Debug là để xem app gọi ĐÚNG API nào, không phải để xem
+ * khách đã gõ gì — nên không bao giờ đưa giá trị vào log, kể cả khi chỉ hiện
+ * trên máy của chính người dev.
+ */
+function logSafePath(path: string): string {
+  const [pathname, qs] = path.split('?');
+  if (!qs) return pathname;
+  const names = [...new URLSearchParams(qs).keys()];
+  return names.length > 0 ? `${pathname}?${names.join(',')}=•••` : pathname;
+}
+
 /* ------------------------------------------------------------------ */
 /* Kiểu dữ liệu                                                        */
 /* ------------------------------------------------------------------ */
@@ -441,7 +459,7 @@ async function requestEnvelope<T>(
   } catch (err) {
     // fetch chỉ reject khi mất mạng / bị CSP chặn — phân biệt với lỗi HTTP
     if ((err as Error)?.name === 'AbortError') throw err;
-    pushLog('api', `${method} ${path} — MẤT KẾT NỐI`);
+    pushLog('api', `${method} ${logSafePath(path)} — MẤT KẾT NỐI`);
     throw new ApiError('NO_INTERNET', 'Không có kết nối tới máy chủ');
   }
 
@@ -460,7 +478,7 @@ async function requestEnvelope<T>(
       sessionToken = null;
       for (const fn of expiredListeners) fn();
     }
-    pushLog('api', `${method} ${path} ${res.status} ${code} (${Date.now() - startedAt}ms)`,
+    pushLog('api', `${method} ${logSafePath(path)} ${res.status} ${code} (${Date.now() - startedAt}ms)`,
       envelope.error?.message ?? '');
     throw new ApiError(
       code,
@@ -468,7 +486,7 @@ async function requestEnvelope<T>(
       envelope.error?.details,
     );
   }
-  pushLog('api', `${method} ${path} ${res.status} (${Date.now() - startedAt}ms)`);
+  pushLog('api', `${method} ${logSafePath(path)} ${res.status} (${Date.now() - startedAt}ms)`);
   return envelope;
 }
 

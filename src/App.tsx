@@ -297,17 +297,30 @@ export default function App() {
   // Trên APK, splash native che suốt quãng này nên không ai thấy màn "Đang tải"
   useNativeShell({ onBack: handleHardwareBack, ready: bootDone });
 
+  // Nút Debug PHẢI có mặt ở MỌI màn, kể cả hai nhánh return sớm bên dưới —
+  // trước đây nó chỉ nằm trong nhánh JSX chính, nên đúng lúc cần xem log nhất
+  // (app đang tải, hoặc gọi API lỗi) thì nút lại biến mất.
+  const debugOverlay = SHOW_DEBUG ? <DebugPanel /> : null;
+
   // [R-4] Loading / No Internet / Error cho cấu hình dùng chung
   if (bootstrap.loading || auth.status === 'checking') {
-    return <AppStatus kind="loading" />;
+    return (
+      <>
+        <AppStatus kind="loading" />
+        {debugOverlay}
+      </>
+    );
   }
   if (bootstrap.error) {
     return (
-      <AppStatus
-        kind={bootstrap.error.code === 'NO_INTERNET' ? 'offline' : 'error'}
-        message={bootstrap.error.message}
-        onRetry={bootstrap.retry}
-      />
+      <>
+        <AppStatus
+          kind={bootstrap.error.code === 'NO_INTERNET' ? 'offline' : 'error'}
+          message={bootstrap.error.message}
+          onRetry={bootstrap.retry}
+        />
+        {debugOverlay}
+      </>
     );
   }
 
@@ -463,7 +476,7 @@ export default function App() {
 
       {order && <SuccessModal order={order} onGoHome={handleGoHome} />}
 
-      {SHOW_DEBUG && <DebugPanel />}
+      {debugOverlay}
     </div>
   );
 }
