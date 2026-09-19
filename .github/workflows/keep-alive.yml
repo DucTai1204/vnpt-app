@@ -1,0 +1,36 @@
+# Ping backend định kỳ để Render (gói free) không cho service "ngủ".
+#
+# Render free tắt service sau ~15 phút không có request; request đầu tiên sau
+# đó phải chờ khởi động lại gần 1 phút -> người dùng thấy app treo.
+#
+# Workflow đặt ở repo này (public) chứ không ở vnpt-api (private): repo public
+# chạy Actions miễn phí không giới hạn phút, còn repo private chỉ có 2000
+# phút/tháng mà ping 10 phút/lần đã tốn ~4300 phút.
+#
+# Lưu ý: GitHub có thể chạy cron trễ vài phút lúc cao điểm, nên thỉnh thoảng
+# service vẫn có thể ngủ. Repo không có commit nào trong 60 ngày thì GitHub tự
+# tắt lịch chạy này (có gửi email báo trước) — bật lại ở tab Actions.
+name: Keep backend awake
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  # Bấm chạy tay ở tab Actions để kiểm tra ngay.
+  workflow_dispatch:
+
+# Chỉ gọi HTTP ra ngoài, không cần quyền gì trên repo.
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping /health
+        # --max-time 90: đủ chờ nếu service đang khởi động lại (~50s).
+        # --fail: API trả lỗi thì job đỏ -> GitHub gửi email báo, tiện theo dõi
+        # backend chết.
+        run: |
+          curl --fail --silent --show-error \
+            --max-time 90 --retry 3 --retry-delay 10 --retry-all-errors \
+            https://vnpt-san-api.onrender.com/health
